@@ -2,7 +2,7 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": "20.x" },
+  "engines": { "node": "^26" },
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@capacitor/core": "^6.1.2",
-    "@qaidilife/api-client": "*",
+    "@qaidilife/api-client": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.507.0",

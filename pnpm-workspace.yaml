@@ -1,3 +1,18 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+allowBuilds:
+  '@nestjs/core': false
+  '@prisma/client': false
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  core-js: false
+  prisma: false
+  protobufjs: false
+  sharp: false
+  unrs-resolver: false
+
+audit: false
+fund: false
+legacy-peer-deps: true

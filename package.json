@@ -1,8 +1,10 @@
 {
   "name": "qaidilife",
   "private": true,
-  "engines": { "node": "20.x" },
-  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": "^26"
+  },
+  "packageManager": "pnpm@11.1.2",
   "workspaces": [
     "apps/*",
     "packages/*"
