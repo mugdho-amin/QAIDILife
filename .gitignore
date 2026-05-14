@@ -1,0 +1,45 @@
+# env
+.env
+.env.*
+!.env.example
+
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+.next/
+build/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# database
+*.db
+*.sqlite
+
+# images
+/arjo-pdp-mobile.png
+/arjo-pdp.png
+
+# docs
+/BACKEND-SPECIFICATION.md
+
+# lockfiles
+/pnpm-lock.yaml
+/package-lock.json
+/yarn.lock
+
+# pwa
+apps/admin/public/sw.js
+apps/admin/public/workbox-*

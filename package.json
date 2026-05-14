@@ -1,0 +1,29 @@
+{
+  "name": "qaidilife",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "pnpm -C apps/web dev",
+    "dev:admin": "pnpm -C apps/admin dev",
+    "dev:api": "pnpm -C apps/api start:dev",
+    "cap:sync": "pnpm -C apps/admin cap:sync",
+    "cap:add:android": "pnpm -C apps/admin cap:add:android",
+    "cap:add:ios": "pnpm -C apps/admin cap:add:ios",
+    "cap:android": "pnpm -C apps/admin cap:android",
+    "cap:ios": "pnpm -C apps/admin cap:ios",
+    "cap:open": "pnpm -C apps/admin cap:open",
+    "mock:api": "prism mock openapi/openapi.yaml --port 4010",
+    "openapi:lint": "redocly lint openapi/openapi.yaml",
+    "openapi:gen": "openapi-typescript openapi/openapi.yaml -o packages/api-client/src/schema.d.ts",
+    "openapi:watch": "openapi-typescript openapi/openapi.yaml -o packages/api-client/src/schema.d.ts --watch"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.25.0",
+    "@stoplight/prism-cli": "^5.12.1",
+    "openapi-typescript": "^6.7.3"
+  }
+}

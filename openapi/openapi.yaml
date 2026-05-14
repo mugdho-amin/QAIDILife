@@ -1,0 +1,567 @@
+openapi: 3.1.1
+info:
+  title: QAIDILife Commerce API
+  version: 1.0.0
+  description: Core commerce API for QAIDILife storefront and mobile shells.
+servers:
+  - url: http://localhost:4000
+    description: Local API
+  - url: http://localhost:4010
+    description: Mock API
+paths:
+  /v1/auth/otp/request:
+    post:
+      summary: Request OTP for phone login
+      operationId: requestOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpChallenge'
+  /v1/auth/otp/verify:
+    post:
+      summary: Verify OTP and issue auth token
+      operationId: verifyOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerify'
+      responses:
+        '200':
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+  /v1/auth/logout:
+    post:
+      summary: Logout
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out
+  /v1/me:
+    get:
+      summary: Get current user
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /v1/categories:
+    get:
+      summary: List categories
+      operationId: listCategories
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+  /v1/products:
+    get:
+      summary: List products
+      operationId: listProducts
+      parameters:
+        - in: query
+          name: size
+          schema:
+            type: string
+        - in: query
+          name: color
+          schema:
+            type: string
+        - in: query
+          name: price_min
+          schema:
+            type: number
+        - in: query
+          name: price_max
+          schema:
+            type: number
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [newest, price_asc, price_desc, popular]
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
+  /v1/products/{id}:
+    get:
+      summary: Get product by id or slug
+      operationId: getProduct
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /v1/cart:
+    get:
+      summary: Get cart
+      operationId: getCart
+      parameters:
+        - in: header
+          name: x-cart-id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cart
+          headers:
+            x-cart-id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+  /v1/cart/items:
+    post:
+      summary: Add item to cart
+      operationId: addCartItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItem'
+      responses:
+        '200':
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+  /v1/cart/items/{id}:
+    patch:
+      summary: Update cart item
+      operationId: updateCartItem
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItem'
+      responses:
+        '200':
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+    delete:
+      summary: Remove cart item
+      operationId: removeCartItem
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Removed
+  /v1/checkout:
+    post:
+      summary: Create checkout and compute totals
+      operationId: checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Checkout summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSummary'
+  /v1/payments:
+    post:
+      summary: Initiate payment
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Payment session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentSession'
+  /v1/webhooks/sslcommerz:
+    post:
+      summary: SSLCommerz IPN callback
+      operationId: sslcommerzWebhook
+      responses:
+        '204':
+          description: Accepted
+  /v1/webhooks/shurjopay:
+    post:
+      summary: ShurjoPay IPN callback
+      operationId: shurjopayWebhook
+      responses:
+        '204':
+          description: Accepted
+  /v1/orders:
+    get:
+      summary: List orders for current user
+      operationId: listOrders
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+  /v1/orders/{id}:
+    get:
+      summary: Get order
+      operationId: getOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        phone:
+          type: string
+      required: [id, phone]
+    OtpRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+      required: [phone]
+    OtpChallenge:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        expires_in:
+          type: integer
+      required: [challenge_id, expires_in]
+    OtpVerify:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        code:
+          type: string
+      required: [challenge_id, code]
+    AuthSession:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required: [token, user]
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        name_en:
+          type: string
+        name_bn:
+          type: string
+      required: [id, slug, name_en, name_bn]
+    Money:
+      type: object
+      properties:
+        currency:
+          type: string
+          default: BDT
+        amount:
+          type: number
+      required: [currency, amount]
+    ProductVariant:
+      type: object
+      properties:
+        id:
+          type: string
+        sku:
+          type: string
+        size:
+          type: string
+        color:
+          type: string
+        stock:
+          type: integer
+        price:
+          $ref: '#/components/schemas/Money'
+      required: [id, sku, size, color, stock, price]
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        title_en:
+          type: string
+        title_bn:
+          type: string
+        description_en:
+          type: string
+        description_bn:
+          type: string
+        primary_image:
+          type: string
+        gallery:
+          type: array
+          items:
+            type: string
+        price:
+          $ref: '#/components/schemas/Money'
+        compare_at:
+          $ref: '#/components/schemas/Money'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+        category_ids:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - slug
+        - title_en
+        - title_bn
+        - primary_image
+        - price
+        - variants
+    ProductList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        next_cursor:
+          type: string
+          nullable: true
+      required: [items]
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+        product_id:
+          type: string
+        variant_id:
+          type: string
+        title_en:
+          type: string
+        title_bn:
+          type: string
+        image:
+          type: string
+        qty:
+          type: integer
+        unit_price:
+          $ref: '#/components/schemas/Money'
+        line_total:
+          $ref: '#/components/schemas/Money'
+      required:
+        - id
+        - product_id
+        - variant_id
+        - title_en
+        - title_bn
+        - image
+        - qty
+        - unit_price
+        - line_total
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        subtotal:
+          $ref: '#/components/schemas/Money'
+      required: [id, items, subtotal]
+    AddCartItem:
+      type: object
+      properties:
+        cart_id:
+          type: string
+        product_id:
+          type: string
+        variant_id:
+          type: string
+        qty:
+          type: integer
+      required: [product_id, variant_id, qty]
+    UpdateCartItem:
+      type: object
+      properties:
+        qty:
+          type: integer
+      required: [qty]
+    CheckoutRequest:
+      type: object
+      properties:
+        cart_id:
+          type: string
+        phone:
+          type: string
+        shipping_zone:
+          type: string
+          enum: [INSIDE_DHAKA, OUTSIDE_DHAKA]
+      required: [cart_id, phone, shipping_zone]
+    ShippingQuote:
+      type: object
+      properties:
+        zone:
+          type: string
+          enum: [INSIDE_DHAKA, OUTSIDE_DHAKA]
+        fee:
+          $ref: '#/components/schemas/Money'
+      required: [zone, fee]
+    CheckoutSummary:
+      type: object
+      properties:
+        cart_id:
+          type: string
+        order_id:
+          type: string
+        shipping:
+          $ref: '#/components/schemas/ShippingQuote'
+        subtotal:
+          $ref: '#/components/schemas/Money'
+        total:
+          $ref: '#/components/schemas/Money'
+      required: [cart_id, order_id, shipping, subtotal, total]
+    PaymentRequest:
+      type: object
+      properties:
+        order_id:
+          type: string
+        provider:
+          type: string
+          enum: [SSLCOMMERZ, SHURJOPAY, COD]
+      required: [order_id, provider]
+    PaymentSession:
+      type: object
+      properties:
+        payment_id:
+          type: string
+        provider:
+          type: string
+        status:
+          type: string
+        redirect_url:
+          type: string
+          nullable: true
+      required: [payment_id, provider, status]
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        phone:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        shipping:
+          $ref: '#/components/schemas/ShippingQuote'
+        subtotal:
+          $ref: '#/components/schemas/Money'
+        total:
+          $ref: '#/components/schemas/Money'
+        created_at:
+          type: string
+          format: date-time
+      required: [id, status, phone, items, shipping, subtotal, total, created_at]

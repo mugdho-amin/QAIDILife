@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">How to Measure</title>
+  <desc id="desc">Minimal illustration showing shirt measurements.</desc>
+  <rect width="800" height="600" fill="#f5f2ef" />
+  <rect x="220" y="80" width="360" height="420" rx="28" fill="#ffffff" stroke="#d6d0ca" stroke-width="6" />
+  <path d="M260 120 L340 80 L380 150" fill="none" stroke="#c1bab3" stroke-width="8" stroke-linecap="round" />
+  <path d="M540 120 L460 80 L420 150" fill="none" stroke="#c1bab3" stroke-width="8" stroke-linecap="round" />
+  <rect x="300" y="180" width="200" height="260" rx="20" fill="#f9f7f4" stroke="#c1bab3" stroke-width="6" />
+  <line x1="260" y1="220" x2="540" y2="220" stroke="#7a6f66" stroke-width="6" stroke-dasharray="10 10" />
+  <line x1="300" y1="180" x2="300" y2="440" stroke="#7a6f66" stroke-width="6" stroke-dasharray="10 10" />
+  <line x1="500" y1="180" x2="500" y2="440" stroke="#7a6f66" stroke-width="6" stroke-dasharray="10 10" />
+  <text x="400" y="540" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#7a6f66" letter-spacing="6">MEASURE GUIDE</text>
+</svg>

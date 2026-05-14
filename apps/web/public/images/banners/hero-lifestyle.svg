@@ -1,0 +1,15 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="55%" stop-color="#1F1F1F"/>
+      <stop offset="100%" stop-color="#3A3A3A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#heroGradient)"/>
+  <circle cx="1200" cy="240" r="180" fill="#4A4A4A" opacity="0.45"/>
+  <circle cx="350" cy="780" r="260" fill="#2A2A2A" opacity="0.55"/>
+  <rect x="120" y="120" width="1360" height="760" rx="120" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="8"/>
+  <text x="160" y="520" fill="#FFFFFF" font-size="64" font-family="Arial" letter-spacing="0.35em">QAIDILIFE</text>
+  <text x="160" y="590" fill="#FFFFFF" font-size="28" font-family="Arial" letter-spacing="0.18em" opacity="0.7">LOCAL HERO ASSET</text>
+</svg>

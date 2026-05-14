@@ -1,0 +1,19 @@
+{
+  "name": "@qaidilife/api-client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "types": "./src/schema.d.ts",
+  "exports": {
+    ".": {
+  "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "gen": "openapi-typescript ../../openapi/openapi.yaml -o src/schema.d.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
