@@ -1,4 +1,6 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiQuery } from "@nestjs/swagger";
+import { SkipThrottle } from "@nestjs/throttler";
 import { z } from "zod";
 import { CatalogService } from "./catalog.service";
 
@@ -10,25 +12,29 @@ const listSchema = z.object({
   sort: z.string().optional(),
   cursor: z.string().optional(),
   limit: z.coerce.number().optional(),
+  search: z.string().optional(),
 });
 
-/** Catalog endpoints for categories and products. */
+@ApiTags("Catalog")
 @Controller()
 export class CatalogController {
-  /** Create a catalog controller. */
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(private readonly catalog: CatalogService) {}
 
-  /** List categories. */
   @Get("categories")
+  @SkipThrottle()
+  @ApiOperation({ summary: "List all categories" })
   async listCategories() {
-    return this.catalogService.listCategories();
+    return this.catalog.listCategories();
   }
 
-  /** List products with filters. */
   @Get("products")
+  @SkipThrottle()
+  @ApiOperation({ summary: "List/search products with cursor pagination" })
+  @ApiQuery({ name: "search", required: false })
+  @ApiQuery({ name: "sort", required: false, enum: ["newest", "price_asc", "price_desc", "name_asc", "name_desc"] })
   async listProducts(@Query() query: Record<string, string>) {
     const parsed = listSchema.parse(query);
-    return this.catalogService.listProducts({
+    return this.catalog.listProducts({
       size: parsed.size,
       color: parsed.color,
       priceMin: parsed.price_min,
@@ -36,12 +42,14 @@ export class CatalogController {
       sort: parsed.sort,
       cursor: parsed.cursor,
       limit: parsed.limit,
+      search: parsed.search,
     });
   }
 
-  /** Get a single product. */
   @Get("products/:id")
+  @SkipThrottle()
+  @ApiOperation({ summary: "Get product by ID or slug" })
   async getProduct(@Param("id") id: string) {
-    return this.catalogService.getProduct(id);
+    return this.catalog.getProduct(id);
   }
 }

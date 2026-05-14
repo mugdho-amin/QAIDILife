@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { PrismaService } from "../../prisma/prisma.service";
 import type { CartDto, CartItemDto } from "./cart.types";
 import { calculateSubtotal } from "./cart.utils";
 
-/** Cart service for managing cart state. */
+const CART_TTL_DAYS = 7;
+
 @Injectable()
 export class CartService {
-  /** Create a cart service. */
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Get or create a cart by id. */
   async getOrCreate(cartId?: string) {
     if (cartId) {
       const existing = await this.prisma.cart.findUnique({
@@ -17,22 +17,28 @@ export class CartService {
         include: { items: { include: { product: true, variant: true } } },
       });
       if (existing) {
-        return existing;
+        if (existing.expiresAt && existing.expiresAt < new Date()) {
+          await this.prisma.cart.delete({ where: { id: cartId } });
+        } else {
+          await this.prisma.cart.update({
+            where: { id: cartId },
+            data: { expiresAt: new Date(Date.now() + CART_TTL_DAYS * 86400000) },
+          });
+          return existing;
+        }
       }
     }
     return this.prisma.cart.create({
-      data: {},
+      data: { expiresAt: new Date(Date.now() + CART_TTL_DAYS * 86400000) },
       include: { items: { include: { product: true, variant: true } } },
     });
   }
 
-  /** Get cart DTO with subtotal. */
   async getCart(cartId?: string): Promise<CartDto> {
     const cart = await this.getOrCreate(cartId);
     return this.mapCart(cart);
   }
 
-  /** Add an item to the cart. */
   async addItem(input: {
     cartId?: string;
     productId: string;
@@ -47,10 +53,7 @@ export class CartService {
       throw new NotFoundException("Variant not found");
     }
     const existing = await this.prisma.cartItem.findFirst({
-      where: {
-        cartId: cart.id,
-        variantId: input.variantId,
-      },
+      where: { cartId: cart.id, variantId: input.variantId },
     });
     if (existing) {
       await this.prisma.cartItem.update({
@@ -72,47 +75,40 @@ export class CartService {
       where: { id: cart.id },
       include: { items: { include: { product: true, variant: true } } },
     });
-    if (!updated) {
-      throw new NotFoundException("Cart not found");
-    }
+    if (!updated) throw new NotFoundException("Cart not found");
     return this.mapCart(updated);
   }
 
-  /** Update cart item quantity. */
   async updateItem(itemId: string, qty: number) {
     const item = await this.prisma.cartItem.findUnique({
       where: { id: itemId },
       include: { cart: true },
     });
-    if (!item) {
-      throw new NotFoundException("Cart item not found");
-    }
+    if (!item) throw new NotFoundException("Cart item not found");
     if (qty <= 0) {
-      await this.prisma.cartItem.delete({
-        where: { id: itemId },
-      });
+      await this.prisma.cartItem.delete({ where: { id: itemId } });
     } else {
-      await this.prisma.cartItem.update({
-        where: { id: itemId },
-        data: { qty },
-      });
+      await this.prisma.cartItem.update({ where: { id: itemId }, data: { qty } });
     }
     const cart = await this.prisma.cart.findUnique({
       where: { id: item.cartId },
       include: { items: { include: { product: true, variant: true } } },
     });
-    if (!cart) {
-      throw new NotFoundException("Cart not found");
-    }
+    if (!cart) throw new NotFoundException("Cart not found");
     return this.mapCart(cart);
   }
 
-  /** Remove cart item. */
   async removeItem(itemId: string) {
     await this.prisma.cartItem.delete({ where: { id: itemId } });
   }
 
-  /** Map Prisma cart to DTO. */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async cleanExpiredCarts() {
+    await this.prisma.cart.deleteMany({
+      where: { expiresAt: { lte: new Date() } },
+    });
+  }
+
   private mapCart(cart: {
     id: string;
     items: Array<{
@@ -140,11 +136,10 @@ export class CartService {
         line_total: { currency: "BDT", amount: lineTotal },
       });
     }
-    const subtotal = calculateSubtotal(subtotalInputs);
     return {
       id: cart.id,
       items,
-      subtotal: { currency: "BDT", amount: subtotal },
+      subtotal: { currency: "BDT", amount: calculateSubtotal(subtotalInputs) },
     };
   }
 }

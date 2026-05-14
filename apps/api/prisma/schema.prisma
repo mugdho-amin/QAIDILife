@@ -8,11 +8,20 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  phone     String   @unique
-  createdAt DateTime @default(now())
+  id        String         @id @default(cuid())
+  phone     String         @unique
+  email     String?
+  name      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
   orders    Order[]
   carts     Cart[]
+  addresses Address[]
+  wishlists WishlistItem[]
+  reviews   Review[]
+
+  @@index([phone])
+  @@index([email])
 }
 
 model AdminUser {
@@ -33,6 +42,29 @@ model OtpChallenge {
   expiresAt DateTime
   consumed  Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([phone, consumed])
+  @@index([expiresAt])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  label      String   @default("Home")
+  fullName   String
+  phone      String
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  zipCode    String?
+  country    String   @default("Bangladesh")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Category {
@@ -41,6 +73,12 @@ model Category {
   nameEn   String
   nameBn   String
   products ProductCategory[]
+  parentId String?
+  parent   Category?          @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[]         @relation("CategoryHierarchy")
+
+  @@index([slug])
+  @@index([parentId])
 }
 
 model Product {
@@ -55,11 +93,19 @@ model Product {
   price         Int
   compareAt     Int?
   currency      String             @default("BDT")
+  published     Boolean            @default(true)
   variants      Variant[]
   categories    ProductCategory[]
   cartItems     CartItem[]
+  wishlists     WishlistItem[]
+  reviews       Review[]
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
+
+  @@index([slug])
+  @@index([price])
+  @@index([published, createdAt])
+  @@index([titleEn])
 }
 
 model ProductCategory {
@@ -70,6 +116,8 @@ model ProductCategory {
   category   Category @relation(fields: [categoryId], references: [id])
 
   @@unique([productId, categoryId])
+  @@index([categoryId])
+  @@index([productId])
 }
 
 model Variant {
@@ -79,9 +127,13 @@ model Variant {
   sku       String
   size      String
   color     String
-  stock     Int
+  stock     Int     @default(0)
   price     Int
   cartItems CartItem[]
+
+  @@index([productId])
+  @@index([sku])
+  @@index([size, color])
 }
 
 model Cart {
@@ -89,8 +141,12 @@ model Cart {
   userId    String?
   user      User?      @relation(fields: [userId], references: [id])
   items     CartItem[]
+  expiresAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model CartItem {
@@ -103,6 +159,9 @@ model CartItem {
   variant   Variant @relation(fields: [variantId], references: [id])
   qty       Int
   price     Int
+
+  @@index([cartId])
+  @@index([productId])
 }
 
 model Order {
@@ -114,10 +173,20 @@ model Order {
   shippingFee  Int
   subtotal     Int
   total        Int
-  status       String
+  status       String      @default("pending")
+  couponId     String?
+  coupon       Coupon?     @relation(fields: [couponId], references: [id])
+  discount     Int         @default(0)
+  notes        String?
   createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
   items        OrderItem[]
   payments     Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([phone])
 }
 
 model OrderItem {
@@ -131,6 +200,8 @@ model OrderItem {
   titleEn   String
   titleBn   String
   image     String
+
+  @@index([orderId])
 }
 
 model Payment {
@@ -138,8 +209,60 @@ model Payment {
   orderId       String
   order         Order    @relation(fields: [orderId], references: [id])
   provider      String
-  status        String
+  status        String   @default("pending")
   transactionId String?
   amount        Int
   createdAt     DateTime @default(now())
+
+  @@index([orderId])
+  @@index([transactionId])
+  @@index([status])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  rating    Int
+  title     String?
+  body      String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId, rating])
+  @@index([userId])
+}
+
+model Coupon {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  description  String?
+  discountType String   @default("percentage")
+  discountValue Int
+  minOrder     Int      @default(0)
+  maxDiscount  Int?
+  maxUses      Int?
+  usedCount    Int      @default(0)
+  isActive     Boolean  @default(true)
+  startsAt     DateTime?
+  expiresAt    DateTime?
+  orders       Order[]
+  createdAt    DateTime @default(now())
+
+  @@index([code])
+  @@index([isActive, expiresAt])
 }

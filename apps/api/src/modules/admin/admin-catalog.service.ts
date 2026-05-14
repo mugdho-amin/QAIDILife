@@ -72,7 +72,7 @@ export class AdminCatalogService {
         descriptionEn: input.descriptionEn,
         descriptionBn: input.descriptionBn,
         primaryImage: input.primaryImage,
-        gallery: JSON.stringify(input.gallery),
+        gallery: input.gallery,
         price: input.price,
         compareAt: input.compareAt ?? undefined,
         currency: input.currency ?? "BDT",
@@ -137,7 +137,7 @@ export class AdminCatalogService {
       currency: input.currency ?? undefined,
     };
     if (input.gallery) {
-      data.gallery = JSON.stringify(input.gallery);
+      data.gallery = input.gallery;
     }
     if (input.variants) {
       await this.prisma.cartItem.deleteMany({

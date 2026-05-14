@@ -1,10 +1,21 @@
-import { Global, Module } from "@nestjs/common";
+import { Global, Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { CacheService } from "./cache.service";
+import { GlobalExceptionFilter } from "./filters/global-exception.filter";
+import { ResponseInterceptor } from "./interceptors/response.interceptor";
+import { CorrelationIdMiddleware } from "./middleware/correlation-id.middleware";
 
-/** Shared common services. */
 @Global()
 @Module({
-  providers: [CacheService],
+  providers: [
+    CacheService,
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
+  ],
   exports: [CacheService],
 })
-export class CommonModule {}
+export class CommonModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
+  }
+}

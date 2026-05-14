@@ -1,13 +1,18 @@
-import { Controller, Get, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, UseGuards } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { JwtAuthGuard } from "./jwt.guard";
+import { CurrentUser } from "../../common/decorators/current-user.decorator";
 
-/** Authenticated user endpoint. */
+@ApiTags("Auth")
 @Controller()
 export class MeController {
-  /** Return the current user from JWT payload. */
-  @Get("me")
+  @Get()
   @UseGuards(JwtAuthGuard)
-  async me(@Req() req: { user?: { sub?: string; phone?: string } }) {
-    return { id: req.user?.sub, phone: req.user?.phone };
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get current user profile" })
+  async me(
+    @CurrentUser() user: { sub?: string; phone?: string },
+  ) {
+    return { id: user.sub, phone: user.phone };
   }
 }

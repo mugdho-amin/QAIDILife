@@ -10,6 +10,7 @@ import {
   Post,
   Res,
 } from "@nestjs/common";
+import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { z } from "zod";
 import type { Response } from "express";
 import { CartService } from "./cart.service";
@@ -26,25 +27,17 @@ const addSchema = z.object({
   qty: data.qty,
 }));
 
-const altAddSchema = z.object({
-  cartId: z.string().optional(),
-  productId: z.string().min(1),
-  variantId: z.string().min(1),
-  qty: z.number().min(1),
-});
-
 const updateSchema = z.object({
   qty: z.number().min(0),
 });
 
-/** Cart endpoints for QAIDILife. */
+@ApiTags("Cart")
 @Controller()
 export class CartController {
-  /** Create a cart controller. */
   constructor(private readonly cartService: CartService) {}
 
-  /** Get current cart. */
   @Get("cart")
+  @ApiOperation({ summary: "Get or create cart" })
   async getCart(
     @Headers("x-cart-id") cartId: string | undefined,
     @Res({ passthrough: true }) response: Response,
@@ -54,18 +47,14 @@ export class CartController {
     return cart;
   }
 
-  /** Add an item to cart. */
   @Post("cart/items")
+  @ApiOperation({ summary: "Add item to cart" })
   async addItem(
     @Body() body: unknown,
     @Headers("x-cart-id") cartId: string | undefined,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const parsed = (() => {
-      try { return addSchema.parse(body); } catch {
-        return altAddSchema.parse(body);
-      }
-    })();
+    const parsed = addSchema.parse(body);
     const cart = await this.cartService.addItem({
       cartId: parsed.cartId ?? cartId,
       productId: parsed.productId,
@@ -76,16 +65,16 @@ export class CartController {
     return cart;
   }
 
-  /** Update cart item quantity. */
   @Patch("cart/items/:id")
+  @ApiOperation({ summary: "Update cart item quantity" })
   async updateItem(@Param("id") id: string, @Body() body: unknown) {
     const parsed = updateSchema.parse(body);
     return this.cartService.updateItem(id, parsed.qty);
   }
 
-  /** Remove cart item. */
   @Delete("cart/items/:id")
   @HttpCode(204)
+  @ApiOperation({ summary: "Remove item from cart" })
   async removeItem(@Param("id") id: string) {
     await this.cartService.removeItem(id);
   }

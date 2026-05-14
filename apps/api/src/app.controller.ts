@@ -1,14 +1,16 @@
 import { Controller, Get } from "@nestjs/common";
+import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import { SkipThrottle } from "@nestjs/throttler";
 import { AppService } from "./app.service";
 
-/** Health controller for QAIDILife API. */
+@ApiTags("Health")
 @Controller()
 export class AppController {
-  /** Create a health controller. */
   constructor(private readonly appService: AppService) {}
 
-  /** Get API health status. */
+  @SkipThrottle()
   @Get()
+  @ApiOperation({ summary: "API health check" })
   getHealth() {
     return this.appService.getHealth();
   }

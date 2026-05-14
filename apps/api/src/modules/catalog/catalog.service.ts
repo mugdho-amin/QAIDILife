@@ -1,51 +1,43 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
+import { CacheService } from "../../common/cache.service";
 import { mapProduct, seedCategories, seedProducts } from "./catalog.seed";
 
-type ProductWithVariants = Prisma.ProductGetPayload<{ include: { variants: true } }>;
+type ProductWithVariants = Prisma.ProductGetPayload<{
+  include: { variants: true; categories: { include: { category: true } } };
+}>;
 
-/** Catalog service for products and categories. */
+const CACHE_TTL = 300;
+
 @Injectable()
 export class CatalogService {
-  /** Create a catalog service. */
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
-  /** List product categories. */
   async listCategories() {
-    type CategoryShape = {
-      id: string;
-      slug: string;
-      nameEn: string;
-      nameBn: string;
-    };
-    let categories: CategoryShape[] = [];
-    try {
-      categories = await this.prisma.category.findMany();
-    } catch {
+    const cacheKey = "catalog:categories";
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    let categories = await this.prisma.category.findMany().catch(() => null);
+    if (!categories || categories.length === 0) {
       return seedCategories;
     }
-    if (categories.length === 0) {
-      return seedCategories;
-    }
-    const mapped: {
-      id: string;
-      slug: string;
-      name_en: string;
-      name_bn: string;
-    }[] = [];
-    for (const category of categories) {
-      mapped.push({
-        id: category.id,
-        slug: category.slug,
-        name_en: category.nameEn,
-        name_bn: category.nameBn,
-      });
-    }
+
+    const mapped = categories.map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name_en: c.nameEn,
+      name_bn: c.nameBn,
+    }));
+
+    await this.cache.set(cacheKey, mapped, CACHE_TTL);
     return mapped;
   }
 
-  /** List products with filters and cursor pagination. */
   async listProducts(params: {
     size?: string;
     color?: string;
@@ -54,9 +46,11 @@ export class CatalogService {
     sort?: string;
     cursor?: string;
     limit?: number;
+    search?: string;
   }) {
-    const limit = params.limit ?? 20;
-    const where: Record<string, unknown> = {};
+    const limit = Math.min(params.limit ?? 20, 100);
+    const where: Prisma.ProductWhereInput = { published: true };
+
     if (params.priceMin || params.priceMax) {
       where.price = {
         gte: params.priceMin ?? undefined,
@@ -66,72 +60,63 @@ export class CatalogService {
     if (params.size || params.color) {
       where.variants = {
         some: {
-          size: params.size ?? undefined,
-          color: params.color ?? undefined,
+          ...(params.size ? { size: params.size } : {}),
+          ...(params.color ? { color: params.color } : {}),
         },
       };
     }
+    if (params.search) {
+      where.OR = [
+        { titleEn: { contains: params.search, mode: "insensitive" } },
+        { titleBn: { contains: params.search } },
+        { descriptionEn: { contains: params.search, mode: "insensitive" } },
+      ];
+    }
+
     const orderBy = this.resolveSort(params.sort);
-    let products: ProductWithVariants[] = [];
-    try {
-      products = await this.prisma.product.findMany({
-        where,
-        include: { variants: true },
-        take: limit,
-        skip: params.cursor ? 1 : 0,
-        cursor: params.cursor ? { id: params.cursor } : undefined,
-        orderBy,
-      });
-    } catch {
-      return { items: seedProducts, next_cursor: null };
-    }
-    if (products.length === 0) {
-      return { items: seedProducts, next_cursor: null };
-    }
-    const items = [] as ReturnType<typeof mapProduct>[];
-    for (const product of products) {
-      items.push(mapProduct(product, product.variants));
-    }
+    const products = await this.prisma.product.findMany({
+      where,
+      include: { variants: true, categories: { include: { category: true } } },
+      take: limit,
+      skip: params.cursor ? 1 : 0,
+      cursor: params.cursor ? { id: params.cursor } : undefined,
+      orderBy,
+    });
+
+    const items = products.map((p) => mapProduct(p, p.variants));
     const nextCursor = products.length === limit ? products.at(-1)?.id : null;
     return { items, next_cursor: nextCursor ?? null };
   }
 
-  /** Fetch a product by id or slug. */
   async getProduct(idOrSlug: string) {
-    let product: ProductWithVariants | null = null;
-    try {
-      product = await this.prisma.product.findFirst({
-        where: {
-          OR: [{ id: idOrSlug }, { slug: idOrSlug }],
-        },
-        include: { variants: true },
-      });
-    } catch {
-      product = null;
-    }
-    if (!product) {
-      for (const item of seedProducts) {
-        if (item.id === idOrSlug || item.slug === idOrSlug) {
-          return item;
-        }
-      }
-      return null;
-    }
-    return mapProduct(product, product.variants);
+    const cacheKey = `catalog:product:${idOrSlug}`;
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const product = await this.prisma.product.findFirst({
+      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }], published: true },
+      include: { variants: true, categories: { include: { category: true } } },
+    });
+
+    if (!product) return null;
+
+    const result = mapProduct(product, product.variants);
+    await this.cache.set(cacheKey, result, CACHE_TTL);
+    return result;
   }
 
-  /** Resolve sort order. */
-  private resolveSort(
-    sort?: string,
-  ): Prisma.ProductOrderByWithRelationInput {
-    const desc = "desc" as Prisma.SortOrder;
-    const asc = "asc" as Prisma.SortOrder;
-    if (sort === "price_asc") {
-      return { price: asc };
-    }
-    if (sort === "price_desc") {
-      return { price: desc };
-    }
-    return { createdAt: desc };
+  async invalidateProductCache(idOrSlug: string) {
+    await this.cache.del(`catalog:product:${idOrSlug}`);
+    await this.cache.del("catalog:categories");
+    await this.cache.delPattern("catalog:products:*");
+  }
+
+  private resolveSort(sort?: string): Prisma.ProductOrderByWithRelationInput {
+    if (sort === "price_asc") return { price: "asc" };
+    if (sort === "price_desc") return { price: "desc" };
+    if (sort === "name_asc") return { titleEn: "asc" };
+    if (sort === "name_desc") return { titleEn: "desc" };
+    if (sort === "oldest") return { createdAt: "asc" };
+    return { createdAt: "desc" };
   }
 }

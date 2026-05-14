@@ -5,14 +5,15 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { TokenBlacklistService } from "./token-blacklist.service";
 
-/** JWT auth guard to protect routes. */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  /** Create a JWT auth guard. */
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly blacklist: TokenBlacklistService,
+  ) {}
 
-  /** Validate JWT from Authorization header. */
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     const authHeader: string | undefined = request.headers.authorization;
@@ -24,9 +25,16 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET ?? "qaidilife_dev_secret",
       });
+      if (payload.jti) {
+        const blacklisted = await this.blacklist.isBlacklisted(payload.jti);
+        if (blacklisted) {
+          throw new UnauthorizedException("Token revoked");
+        }
+      }
       request.user = payload;
       return true;
-    } catch {
+    } catch (err) {
+      if (err instanceof UnauthorizedException) throw err;
       throw new UnauthorizedException("Invalid token");
     }
   }
