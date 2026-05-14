@@ -67,9 +67,10 @@ export class CatalogService {
     }
     if (params.search) {
       where.OR = [
-        { titleEn: { contains: params.search, mode: "insensitive" } },
+        { titleEn: { contains: params.search } },
         { titleBn: { contains: params.search } },
-        { descriptionEn: { contains: params.search, mode: "insensitive" } },
+        { descriptionEn: { contains: params.search } },
+        { descriptionBn: { contains: params.search } },
       ];
     }
 

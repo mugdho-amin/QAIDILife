@@ -1,7 +1,11 @@
-import { Injectable, OnModuleInit, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import bcrypt from "bcryptjs";
-import { PrismaService } from "../../prisma/prisma.service";
+import {
+  Injectable,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import bcrypt from 'bcryptjs';
+import { PrismaService } from '../../prisma/prisma.service';
 
 /** Admin authentication service. */
 @Injectable()
@@ -20,8 +24,8 @@ export class AdminAuthService implements OnModuleInit {
       return;
     }
     const forceSeed =
-      process.env.ADMIN_SEED_FORCE === "true" ||
-      process.env.ADMIN_SEED_FORCE === "1";
+      process.env.ADMIN_SEED_FORCE === 'true' ||
+      process.env.ADMIN_SEED_FORCE === '1';
     try {
       const existing = await this.prisma.adminUser.findUnique({
         where: { email },
@@ -41,8 +45,8 @@ export class AdminAuthService implements OnModuleInit {
         data: {
           email,
           passwordHash,
-          name: "Primary Admin",
-          role: "admin",
+          name: 'Primary Admin',
+          role: 'admin',
         },
       });
     } catch {
@@ -56,11 +60,11 @@ export class AdminAuthService implements OnModuleInit {
       where: { email },
     });
     if (!admin) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw new UnauthorizedException('Invalid credentials');
     }
     const valid = await bcrypt.compare(password, admin.passwordHash);
     if (!valid) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw new UnauthorizedException('Invalid credentials');
     }
     await this.prisma.adminUser.update({
       where: { id: admin.id },
@@ -70,15 +74,9 @@ export class AdminAuthService implements OnModuleInit {
       {
         sub: admin.id,
         email: admin.email,
-        role: "admin",
+        role: 'admin',
       },
-      {
-        secret:
-          process.env.ADMIN_JWT_SECRET ??
-          process.env.JWT_SECRET ??
-          "qaidilife_admin_dev_secret",
-        expiresIn: "8h",
-      },
+      { expiresIn: '30d' },
     );
     return {
       token,
@@ -97,7 +95,7 @@ export class AdminAuthService implements OnModuleInit {
       where: { id: adminId },
     });
     if (!admin) {
-      throw new UnauthorizedException("Admin not found");
+      throw new UnauthorizedException('Admin not found');
     }
     return {
       id: admin.id,

@@ -19,6 +19,13 @@ export interface AdminVariant {
   color: string;
   stock: number;
   price: number;
+  compareAt?: number | null;
+  image?: string | null;
+  weight?: number | null;
+  barcode?: string | null;
+  lowStockThreshold: number;
+  enabled: boolean;
+  sortOrder: number;
 }
 
 /** Admin product data. */
@@ -78,10 +85,24 @@ export interface AdminPayment {
   orderId: string;
 }
 
+/** Recent order summary for dashboard activity. */
+export interface AdminRecentOrder {
+  id: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  item: { titleEn: string; titleBn: string } | null;
+}
+
 /** Admin metrics snapshot. */
 export interface AdminMetrics {
   productCount: number;
   orderCount: number;
   pendingOrders: number;
   totalRevenue: number;
+  revenueGrowth: number;
+  lowStockItems: number;
+  todayOrders: number;
+  activeUsers: number;
+  recentOrders: AdminRecentOrder[];
 }

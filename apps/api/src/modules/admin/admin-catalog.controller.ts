@@ -9,6 +9,13 @@ const variantSchema = z.object({
   color: z.string().min(1),
   stock: z.coerce.number().min(0),
   price: z.coerce.number().min(0),
+  compareAt: z.coerce.number().nullable().optional(),
+  image: z.string().optional(),
+  weight: z.coerce.number().positive().nullable().optional(),
+  barcode: z.string().optional(),
+  lowStockThreshold: z.coerce.number().int().min(0).default(5),
+  enabled: z.boolean().optional().default(true),
+  sortOrder: z.coerce.number().int().min(0).default(0),
 });
 
 const productSchema = z.object({
@@ -22,7 +29,7 @@ const productSchema = z.object({
   price: z.coerce.number().min(0),
   compareAt: z.coerce.number().nullable().optional(),
   currency: z.string().default("BDT"),
-  variants: z.array(variantSchema),
+  variants: z.array(variantSchema).min(1),
   categoryIds: z.array(z.string()).optional(),
 });
 

@@ -4,21 +4,36 @@ import { AdminGate } from "@/components/AdminGate";
 import { AdminShell } from "@/components/AdminShell";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { Skeleton } from "@/components/Skeleton";
 import { useCustom } from "@refinedev/core";
+import type { AdminRecentOrder } from "@/lib/types";
 import {
   Package,
   ShoppingCart,
-  Clock,
   BanknoteIcon,
-  TrendingUp,
-  TrendingDown,
-  ArrowUpRight,
   Activity,
   Users,
 } from "lucide-react";
 
-const fallbackMetrics = { productCount: 0, orderCount: 0, pendingOrders: 0, totalRevenue: 0, revenueGrowth: 0, lowStockItems: 0, todayOrders: 0, activeUsers: 0 };
+const fallbackMetrics = { productCount: 0, orderCount: 0, pendingOrders: 0, totalRevenue: 0, revenueGrowth: 0, lowStockItems: 0, todayOrders: 0, activeUsers: 0, recentOrders: [] };
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
+const statusAction: Record<string, string> = {
+  pending: "New order placed",
+  paid: "Payment received",
+  delivered: "Order delivered",
+  cancelled: "Order cancelled",
+};
 
 export default function AdminDashboardPage() {
   const { query } = useCustom({ url: "/v1/admin/metrics", method: "get" });
@@ -28,7 +43,7 @@ export default function AdminDashboardPage() {
   const statCards = [
     {
       label: "Total Revenue",
-      value: `৳${metrics.totalRevenue.toLocaleString("en-BD")}`,
+      value: `৳${(metrics.totalRevenue / 100).toLocaleString("en-BD")}`,
       hint: `${metrics.revenueGrowth >= 0 ? "+" : ""}${metrics.revenueGrowth ?? 0}% vs last month`,
       icon: BanknoteIcon,
       trend: metrics.revenueGrowth >= 0 ? "up" : "down",
@@ -60,13 +75,14 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const recentActivity = [
-    { action: "New order placed", detail: "#ORD-2024-0042", time: "2 minutes ago", type: "order" },
-    { action: "Product updated", detail: "Classic Panjabi White", time: "15 minutes ago", type: "product" },
-    { action: "Payment received", detail: "৳3,200 via bKash", time: "1 hour ago", type: "payment" },
-    { action: "Order delivered", detail: "#ORD-2024-0039", time: "2 hours ago", type: "order" },
-    { action: "Low stock alert", detail: "Cotton Polo Navy (Size L)", time: "3 hours ago", type: "alert" },
-  ];
+  const activities = (metrics.recentOrders ?? []).flatMap((order: AdminRecentOrder) => [
+    {
+      action: statusAction[order.status] ?? "Order updated",
+      detail: `#${order.id.slice(0, 8)} · ${order.item?.titleEn ?? ""}`,
+      time: timeAgo(order.createdAt),
+      type: order.status === "delivered" ? "delivered" : "order" as const,
+    },
+  ]);
 
   return (
     <AdminGate>
@@ -96,7 +112,7 @@ export default function AdminDashboardPage() {
               <button className="text-xs text-text-muted hover:text-ink transition">View all</button>
             </div>
             <div className="space-y-0">
-              {recentActivity.map((item, i) => (
+              {activities.map((item: { action: string; detail: string; time: string; type: string }, i: number) => (
                 <div
                   key={i}
                   className="flex items-center gap-4 py-3 border-b border-mist/50 last:border-0 animate-fade-in"
@@ -104,10 +120,8 @@ export default function AdminDashboardPage() {
                 >
                   <div className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                    item.type === "order" ? "bg-blue-50 text-blue-600" :
-                    item.type === "payment" ? "bg-emerald-50 text-emerald-600" :
-                    item.type === "alert" ? "bg-amber-50 text-amber-600" :
-                    "bg-violet-50 text-violet-600"
+                    item.type === "delivered" ? "bg-emerald-50 text-emerald-600" :
+                    "bg-blue-50 text-blue-600"
                   )}>
                     <Activity className="h-4 w-4" />
                   </div>
@@ -118,6 +132,9 @@ export default function AdminDashboardPage() {
                   <span className="text-xs text-text-muted shrink-0">{item.time}</span>
                 </div>
               ))}
+              {activities.length === 0 && !isLoading && (
+                <p className="text-sm text-text-muted py-3 text-center">No recent orders</p>
+              )}
             </div>
           </div>
 
@@ -129,10 +146,6 @@ export default function AdminDashboardPage() {
                   <span className="text-sm text-text-secondary">Pending Orders</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{isLoading ? "—" : metrics.pendingOrders}</span>
-                    <span className="flex items-center gap-0.5 text-xs text-amber-600">
-                      <ArrowUpRight className="h-3 w-3" />
-                      12%
-                    </span>
                   </div>
                 </div>
                 <div className="h-px bg-mist/50" />

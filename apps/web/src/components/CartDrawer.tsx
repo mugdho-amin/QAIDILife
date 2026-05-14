@@ -37,7 +37,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
             <div className="space-y-4">
               {[1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-black/5" />)}
             </div>
-          ) : !cart?.items.length ? (
+          ) : !cart?.items?.length ? (
             <div className="flex flex-col items-center justify-center pt-16 text-center">
               <ShoppingBag className="h-10 w-10 text-ink/20" />
               <p className="mt-4 text-sm font-medium text-ink/60">Your cart is empty</p>
@@ -73,7 +73,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
         </div>
 
           <div className="border-t border-black/10 px-5 py-4 space-y-3">
-            {cart?.items.length ? (
+            {cart?.items?.length ? (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-ink/60">Subtotal</span>
                 <span className="font-medium">৳{cart.subtotal.amount.toLocaleString("en-BD")}</span>

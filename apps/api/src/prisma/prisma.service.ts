@@ -9,6 +9,16 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
 
+  constructor() {
+    super({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
+  }
+
   /** Connect Prisma on module init. */
   async onModuleInit() {
     const allowFailure = process.env.PRISMA_ALLOW_INIT_FAILURE === "true";

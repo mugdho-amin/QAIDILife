@@ -21,8 +21,7 @@
     "prisma:generate": "prisma generate",
     "prisma:generate:sqlite": "prisma generate --schema prisma/schema.sqlite.prisma",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:sqlite": "prisma migrate dev --schema prisma/schema.sqlite.prisma --name init",
-    "postinstall": "prisma generate"
+    "prisma:migrate:sqlite": "prisma migrate dev --schema prisma/schema.sqlite.prisma --name init"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

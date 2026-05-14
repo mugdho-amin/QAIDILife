@@ -24,7 +24,7 @@ export default function CheckoutPage() {
 
   // Retry cart load if empty on mount
   useEffect(() => {
-    if (!loading && !cart?.items.length && getCartId()) {
+    if (!loading && !cart?.items?.length && getCartId()) {
       void refresh();
     }
   }, []);

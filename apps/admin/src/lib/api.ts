@@ -36,12 +36,22 @@ const adminFetch = async <T>(
     },
   });
   if (!response.ok) {
-    throw new Error(`Admin API error (${response.status})`);
+    const body = await response.text().catch(() => "");
+    let message: string;
+    try {
+      const parsed = JSON.parse(body);
+      message = parsed.error?.message ?? parsed.message ?? `Admin API error (${response.status})`;
+    } catch {
+      message = body || `Admin API error (${response.status})`;
+    }
+    throw new Error(message);
   }
   if (response.status === 204) {
     return undefined as T;
   }
-  return (await response.json()) as T;
+  const body = await response.json();
+  // API wraps all responses in { success, data, meta }
+  return (body?.data ?? body) as T;
 };
 
 /** Authenticate an admin user. */

@@ -13,7 +13,7 @@ export interface ProductGalleryProps {
 /** Responsive product gallery for PDP. */
 export function ProductGallery({ product }: ProductGalleryProps) {
   const images = useMemo(() => {
-    if (product.gallery.length > 0) {
+    if (product.gallery && product.gallery.length > 0) {
       return product.gallery;
     }
     return [product.primary_image];

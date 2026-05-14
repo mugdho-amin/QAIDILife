@@ -15,6 +15,22 @@ const buildHeaders = (): HeadersInit => {
   return headers;
 };
 
+const getErrorMessage = (body: string, status: number): string => {
+  try {
+    const parsed = JSON.parse(body);
+    return parsed.error?.message ?? parsed.message ?? `API error (${status})`;
+  } catch {
+    return body || `API error (${status})`;
+  }
+};
+
+const unwrap = (body: unknown) => {
+  if (body && typeof body === 'object' && 'success' in body && 'data' in body) {
+    return (body as any).data;
+  }
+  return body;
+};
+
 const apiFetch = async <T>(
   path: string,
   init: RequestInit = {},
@@ -26,16 +42,12 @@ const apiFetch = async <T>(
   if (!response.ok) {
     const body = await response.text().catch(() => "");
     console.error(`API Error [${response.status}] ${path}:`, body.slice(0, 500));
-    let parsed: any;
-    try { parsed = JSON.parse(body); } catch { parsed = { message: body }; }
-    throw {
-      message: parsed.message ?? `API error (${response.status})`,
-      status: response.status,
-      ...parsed,
-    };
+    const message = getErrorMessage(body, response.status);
+    throw { message, status: response.status };
   }
   if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+  const body = await response.json();
+  return unwrap(body) as T;
 };
 
 export const dataProvider: DataProvider = {
@@ -47,9 +59,12 @@ export const dataProvider: DataProvider = {
       body: payload ? JSON.stringify(payload) : undefined,
     });
     if (!response.ok) {
-      throw { message: `API error (${response.status})`, status: response.status };
+      const body = await response.text().catch(() => "");
+      const message = getErrorMessage(body, response.status);
+      throw { message, status: response.status };
     }
-    const data = await response.json() as any;
+    const body = await response.json() as any;
+    const data = unwrap(body);
     return { data };
   },
 

@@ -51,19 +51,10 @@ export default function LoginPage() {
               Manage products, orders, payments, and analytics — all from one place.
             </p>
           </div>
-          <div className="mt-16 grid grid-cols-3 gap-8">
-            <div>
-              <p className="text-2xl font-semibold text-canvas font-display">1.2k+</p>
-              <p className="text-xs text-canvas/40 mt-1">Products Managed</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-canvas font-display">500+</p>
-              <p className="text-xs text-canvas/40 mt-1">Orders Fulfilled</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-canvas font-display">99.9%</p>
-              <p className="text-xs text-canvas/40 mt-1">Uptime</p>
-            </div>
+          <div className="mt-16 border-t border-canvas/10 pt-8">
+            <p className="text-xs text-canvas/40 leading-relaxed max-w-xs">
+              Secure admin access for authorized personnel only. All sessions are encrypted and monitored.
+            </p>
           </div>
         </div>
       </div>

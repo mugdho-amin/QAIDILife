@@ -1,7 +1,7 @@
 /** Currency-supported money value. */
 export interface Money {
   /** ISO currency code. */
-  currency: "BDT";
+  currency: string;
   /** Numeric amount. */
   amount: number;
 }
@@ -33,13 +33,13 @@ export interface Product {
   /** Bengali title. */
   title_bn: string;
   /** English description. */
-  description_en: string;
+  description_en?: string;
   /** Bengali description. */
-  description_bn: string;
+  description_bn?: string;
   /** Primary image URL. */
   primary_image: string;
   /** Gallery image URLs. */
-  gallery: string[];
+  gallery?: string[];
   /** Base price. */
   price: Money;
   /** Optional compare-at price. */
