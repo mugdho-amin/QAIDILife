@@ -1,4 +1,4 @@
 {
-  "installCommand": "cd ../.. && npm install",
-  "buildCommand": "cd ../.. && npm run build"
+  "installCommand": "cd ../.. && rm -rf node_modules package-lock.json && npm install",
+  "buildCommand": "cd ../.. && npm --workspace=web run build"
 }
