@@ -35,8 +35,7 @@ Thumbs.db
 # docs
 /BACKEND-SPECIFICATION.md
 
-# lockfiles
-/pnpm-lock.yaml
+# lockfiles (keep pnpm lock for Vercel builds)
 /package-lock.json
 /yarn.lock
 
