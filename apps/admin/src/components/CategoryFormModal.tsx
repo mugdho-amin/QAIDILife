@@ -54,7 +54,7 @@ export function CategoryFormModal({
   const currentKey = category?.id ?? "__new__";
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { initKey.current = ""; return; }
     if (initKey.current === currentKey) return;
     initKey.current = currentKey;
 
