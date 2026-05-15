@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import type { AdminCategory, AdminCategoryTreeNode } from "@/lib/types";
+import { readAdminToken } from "@/lib/auth";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_ADMIN_API_BASE_URL ?? "http://localhost:4000";
@@ -61,10 +62,7 @@ function flattenTree(nodes: AdminCategoryTreeNode[], depth = 0): Array<AdminCate
 // ── API Helpers ──────────────────────────────────────────
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("admin_token")
-      : null;
+  const token = readAdminToken();
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {

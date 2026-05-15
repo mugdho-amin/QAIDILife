@@ -450,7 +450,7 @@ export class AdminCatalogService {
         slug: input.slug,
         descriptionEn: input.descriptionEn ?? null,
         descriptionBn: input.descriptionBn ?? null,
-        parentId: input.parentId ?? null,
+        parentId: input.parentId || null,
         image: input.image ?? null,
         order: input.order ?? 0,
         status: input.status ?? 'active',
@@ -508,7 +508,7 @@ export class AdminCatalogService {
     if (input.descriptionBn !== undefined) data.descriptionBn = input.descriptionBn;
     if (input.image !== undefined) data.image = input.image;
     if (input.order !== undefined) data.order = input.order;
-    if (input.parentId !== undefined) data.parentId = input.parentId;
+    if (input.parentId !== undefined) data.parentId = input.parentId || null;
     if (input.status !== undefined) data.status = input.status;
     if (input.featured !== undefined) data.featured = input.featured;
     if (input.metaTitleEn !== undefined) data.metaTitleEn = input.metaTitleEn;
