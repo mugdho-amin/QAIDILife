@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../../prisma/generated-client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
@@ -150,7 +150,7 @@ export class AdminCatalogService {
     if (input.descriptionEn !== undefined) data.descriptionEn = input.descriptionEn;
     if (input.descriptionBn !== undefined) data.descriptionBn = input.descriptionBn;
     if (input.primaryImage !== undefined) data.primaryImage = input.primaryImage;
-    if (input.gallery !== undefined) data.gallery = input.gallery;
+    if (input.gallery !== undefined) data.gallery = JSON.stringify(input.gallery);
     if (input.price !== undefined) data.price = input.price;
     if (input.compareAt !== undefined) data.compareAt = input.compareAt;
     if (input.currency !== undefined) data.currency = input.currency;

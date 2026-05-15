@@ -8,7 +8,7 @@ function showToast(message: string, type: "success" | "error" | "info" = "info")
 
   const toast = document.createElement("div");
   toast.id = `toast-${id}`;
-  toast.className = `fixed bottom-6 right-6 z-[100] flex items-center gap-3 rounded-xl border px-5 py-3 text-sm shadow-dialog animate-scale-in transition-all duration-300 ${
+  toast.className = `relative flex items-center gap-3 rounded-xl border px-5 py-3 text-sm shadow-dialog animate-scale-in transition-all duration-300 pointer-events-auto ${
     type === "success"
       ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-300"
       : type === "error"
@@ -35,7 +35,7 @@ function showToast(message: string, type: "success" | "error" | "info" = "info")
 function createContainer() {
   const container = document.createElement("div");
   container.id = "qaidilife-toast-container";
-  container.className = "fixed bottom-0 right-0 z-[100] flex flex-col-reverse gap-3 p-6 pointer-events-none";
+  container.className = "fixed bottom-0 left-1/2 -translate-x-1/2 z-[100] flex flex-col-reverse items-center gap-3 p-6 pointer-events-none";
   document.body.appendChild(container);
   return container;
 }

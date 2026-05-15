@@ -1,7 +1,10 @@
 {
   "name": "qaidilife",
   "private": true,
-  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": "^26"
+  },
+  "packageManager": "pnpm@11.1.1",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -10,6 +13,8 @@
     "dev:web": "pnpm -C apps/web dev",
     "dev:admin": "pnpm -C apps/admin dev",
     "dev:api": "pnpm -C apps/api start:dev",
+    "db:generate": "pnpm -C apps/api prisma:generate",
+    "db:migrate": "pnpm -C apps/api prisma:migrate",
     "cap:sync": "pnpm -C apps/admin cap:sync",
     "cap:add:android": "pnpm -C apps/admin cap:add:android",
     "cap:add:ios": "pnpm -C apps/admin cap:add:ios",

@@ -6,38 +6,54 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { CartDrawer } from "@/components/CartDrawer";
+import { getApiClient } from "@/lib/api";
 
-const navItems = [
-  { label: "T-Shirt", href: "/products?category=t-shirt" },
-  {
-    label: "Winter", href: "/products?category=winter",
-    children: [
-      { label: "Jacket", href: "/products?category=jacket" },
-      { label: "Shacket", href: "/products?category=shacket" },
-      { label: "OverShirt", href: "/products?category=overshirt" },
-      { label: "Ribbed Knit Jacket", href: "/products?category=ribbed-knit" },
-      { label: "Transit Jacket", href: "/products?category=transit-jacket" },
-    ],
-  },
-  {
-    label: "Shirts", href: "/products?category=shirts",
-    children: [
-      { label: "Classic Fit", href: "/products?category=classic-fit" },
-      { label: "Slim Fit", href: "/products?category=slim-fit" },
-      { label: "Q Ben collar", href: "/products?category=q-ben-collar" },
-    ],
-  },
-  { label: "Knit Polos", href: "/products?category=knit-polos" },
-  { label: "Pant", href: "/products?category=pant" },
-  { label: "Panjabi", href: "/products?category=panjabi" },
-  { label: "Katua", href: "/products?category=katua" },
-];
+interface NavItem {
+  label: string;
+  href: string;
+  children?: NavItem[];
+}
+
+interface ApiCategory {
+  id: string;
+  slug: string;
+  name_en: string;
+  name_bn: string;
+  parent_id?: string | null;
+}
+
+const buildNavTree = (categories: ApiCategory[]): NavItem[] => {
+  const topLevel = categories.filter((c) => !c.parent_id);
+  const childMap = new Map<string, ApiCategory[]>();
+  for (const c of categories) {
+    if (c.parent_id) {
+      const list = childMap.get(c.parent_id) ?? [];
+      list.push(c);
+      childMap.set(c.parent_id, list);
+    }
+  }
+  return topLevel.map((c) => {
+    const children = childMap.get(c.id);
+    const item: NavItem = {
+      label: c.name_en,
+      href: `/products?category=${c.slug}`,
+    };
+    if (children?.length) {
+      item.children = children.map((child) => ({
+        label: child.name_en,
+        href: `/products?category=${child.slug}`,
+      }));
+    }
+    return item;
+  });
+};
 
 export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [showEmptyToast, setShowEmptyToast] = useState(false);
   const [hideTop, setHideTop] = useState(false);
+  const [navItems, setNavItems] = useState<NavItem[]>([]);
   const { itemCount } = useCart();
   const { count: wishlistCount } = useWishlist();
 
@@ -57,13 +73,20 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    getApiClient().listCategories().then((raw: any) => {
+      const cats: ApiCategory[] = Array.isArray(raw) ? raw : raw.data ?? [];
+      setNavItems(buildNavTree(cats));
+    }).catch(() => {});
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-white">
       <div className="sm:hidden">
         <MobileHeader onSearch={() => setSearchOpen(true)} onCart={handleCartClick} cartCount={itemCount} wishlistCount={wishlistCount} />
       </div>
       <div className="hidden sm:block">
-        <DesktopHeader hideTop={hideTop} onSearch={() => setSearchOpen(true)} onCart={handleCartClick} cartCount={itemCount} wishlistCount={wishlistCount} />
+        <DesktopHeader navItems={navItems} hideTop={hideTop} onSearch={() => setSearchOpen(true)} onCart={handleCartClick} cartCount={itemCount} wishlistCount={wishlistCount} />
       </div>
       {searchOpen && (
         <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/30 pt-24" onClick={() => setSearchOpen(false)} role="presentation">
@@ -107,7 +130,7 @@ function MobileHeader({ onSearch, onCart, cartCount, wishlistCount }: { onSearch
           </button>
           <button aria-label="Cart" onClick={onCart} className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#e5dfd9]">
             <ShoppingCart className="h-4 w-4" />
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>
+            {cartCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>}
           </button>
           <button aria-label="Search" className="flex h-9 w-9 items-center justify-center" onClick={onSearch}>
             <Search className="h-4 w-4" />
@@ -118,7 +141,7 @@ function MobileHeader({ onSearch, onCart, cartCount, wishlistCount }: { onSearch
   );
 }
 
-function DesktopHeader({ hideTop, onSearch, onCart, cartCount, wishlistCount }: { hideTop: boolean; onSearch: () => void; onCart: () => void; cartCount: number; wishlistCount: number }) {
+function DesktopHeader({ navItems, hideTop, onSearch, onCart, cartCount, wishlistCount }: { navItems: NavItem[]; hideTop: boolean; onSearch: () => void; onCart: () => void; cartCount: number; wishlistCount: number }) {
   return (
     <div className="w-full">
       <div className={`border-b border-black/10 text-xs text-ink/70 transition-all duration-300 ${hideTop ? "max-h-0 -translate-y-4 opacity-0" : "max-h-10"}`}>
@@ -151,7 +174,7 @@ function DesktopHeader({ hideTop, onSearch, onCart, cartCount, wishlistCount }: 
           </button>
           <button aria-label="Cart" onClick={onCart} className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#e5dfd9] hover:bg-black/5 transition">
             <ShoppingCart className="h-4 w-4" />
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>
+            {cartCount > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>}
           </button>
           <button aria-label="Search" onClick={onSearch} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5dfd9] hover:bg-black/5 transition">
             <Search className="h-4 w-4" />

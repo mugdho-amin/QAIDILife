@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../prisma/generated-client";
 
 /** Prisma service wrapper for NestJS lifecycle. */
 @Injectable()
@@ -10,13 +10,22 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
+    const dbUrl = process.env.DATABASE_URL;
+    const isSqlite = dbUrl?.startsWith("file:") || dbUrl?.includes(".db");
+    const env = process.env.NODE_ENV || "development";
+
     super({
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: dbUrl,
         },
       },
+      log: env === "development" ? ["query", "error", "warn"] : ["error", "warn"],
     });
+
+    this.logger.log(
+      `Initializing Prisma with ${isSqlite ? "SQLite" : "Postgres"} in ${env} mode`,
+    );
   }
 
   /** Connect Prisma on module init. */

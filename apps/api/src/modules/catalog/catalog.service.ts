@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../prisma/generated-client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CacheService } from "../../common/cache.service";
 import { mapProduct, seedCategories, seedProducts } from "./catalog.seed";
@@ -32,6 +32,7 @@ export class CatalogService {
       slug: c.slug,
       name_en: c.nameEn,
       name_bn: c.nameBn,
+      parent_id: c.parentId,
     }));
 
     await this.cache.set(cacheKey, mapped, CACHE_TTL);

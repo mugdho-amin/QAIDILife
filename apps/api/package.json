@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": "^26"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -18,9 +21,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate",
+    "prisma:generate": "node -e \"const s = process.env.NODE_ENV === 'production' ? 'prisma/schema.prisma' : 'prisma/schema.sqlite.prisma'; require('child_process').execSync('npx prisma@5.20.0 generate --schema ' + s, {stdio: 'inherit'})\"",
+    "prisma:migrate": "node -e \"const p = process.env.NODE_ENV === 'production'; const s = p ? 'prisma/schema.prisma' : 'prisma/schema.sqlite.prisma'; const c = p ? 'migrate deploy' : 'migrate dev'; require('child_process').execSync('npx prisma@5.20.0 ' + c + ' --schema ' + s, {stdio: 'inherit'})\"",
     "prisma:generate:sqlite": "prisma generate --schema prisma/schema.sqlite.prisma",
-    "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:sqlite": "prisma migrate dev --schema prisma/schema.sqlite.prisma --name init"
   },
   "dependencies": {
@@ -29,17 +32,17 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
-    "@prisma/client": "^5.20.0",
-    "axios": "^1.7.9",
-    "bcryptjs": "^2.4.3",
-    "ioredis": "^5.4.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "zod": "^3.23.8",
     "@nestjs/schedule": "^5.0.1",
     "@nestjs/swagger": "^11.0.0",
     "@nestjs/throttler": "^6.5.0",
-    "helmet": "^8.0.0"
+    "@prisma/client": "5.20.0",
+    "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.4.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -59,7 +62,7 @@
     "globals": "^16.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
-    "prisma": "^5.20.0",
+    "prisma": "5.20.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",

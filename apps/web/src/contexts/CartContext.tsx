@@ -1,7 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import { getCart, addToCart, updateCartItem, removeCartItem, getCartId, setCartId, type CartDto, type CartItemDto } from "@/lib/cart";
+import { getCart, addToCart, updateCartItem, removeCartItem, getCartId, setCartId, type CartDto } from "@/lib/cart";
+
+const unwrap = (body: unknown): CartDto | null => {
+  if (body && typeof body === "object" && "success" in body && "data" in body) {
+    return (body as any).data ?? null;
+  }
+  return body as CartDto | null;
+};
 
 interface CartContextValue {
   cart: CartDto | null;
@@ -27,7 +34,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!id) { setLoading(false); return; }
     try {
       const result = await getCart();
-      setCart(result);
+      setCart(unwrap(result));
     } catch (err) {
       console.error("Cart refresh failed:", err);
       setCart(null);
@@ -38,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const add = useCallback(async (productId: string, variantId: string, qty = 1) => {
-    setCart(await addToCart(productId, variantId, qty));
+    setCart(unwrap(await addToCart(productId, variantId, qty)));
     void refresh();
   }, [refresh]);
 

@@ -23,9 +23,22 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const newCartId = response.headers.get("x-cart-id");
   if (newCartId) setCartId(newCartId);
   if (!response.ok) {
-    let detail = `HTTP ${response.status}`;
-    try { const body = await response.text(); if (body) detail = body.slice(0, 200); } catch {}
-    throw new Error(detail);
+    let message = `HTTP ${response.status}`;
+    try {
+      const body = await response.text();
+      if (body) {
+        const parsed = JSON.parse(body);
+        const err = parsed.error ?? parsed;
+        if (err.details?.length) {
+          message = err.details.map((d: any) => `${d.field.replace(/_/g, " ")} ${d.message.toLowerCase()}`).join("; ");
+        } else if (err.message) {
+          message = err.message;
+        } else {
+          message = body.slice(0, 200);
+        }
+      }
+    } catch {}
+    throw new Error(message);
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
@@ -56,7 +69,7 @@ export async function getCart(): Promise<CartDto> {
 export async function addToCart(productId: string, variantId: string, qty = 1): Promise<CartDto> {
   return apiFetch<CartDto>("/v1/cart/items", {
     method: "POST",
-    body: JSON.stringify({ productId, variantId, qty }),
+    body: JSON.stringify({ product_id: productId, variant_id: variantId, qty }),
   });
 }
 

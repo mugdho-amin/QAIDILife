@@ -37,9 +37,9 @@ $ pnpm install
 # switch env to sqlite (local cache)
 $ Copy-Item .env.sqlite .env
 
-# generate client + migrate with sqlite schema
-$ pnpm run prisma:generate:sqlite
-$ pnpm run prisma:migrate:sqlite
+# generate client + migrate (now environment-aware, defaults to sqlite in dev)
+$ pnpm run prisma:generate
+$ pnpm run prisma:migrate
 
 # start API
 $ pnpm run start:dev

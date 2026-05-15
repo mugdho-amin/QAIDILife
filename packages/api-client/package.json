@@ -2,6 +2,9 @@
   "name": "@qaidilife/api-client",
   "private": true,
   "version": "0.1.0",
+  "engines": {
+    "node": "^26"
+  },
   "type": "module",
   "types": "./src/schema.d.ts",
   "exports": {

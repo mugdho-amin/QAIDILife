@@ -101,6 +101,7 @@ export interface components {
       slug: string;
       name_en: string;
       name_bn: string;
+      parent_id?: string | null;
     };
     Money: {
       /** @default BDT */
