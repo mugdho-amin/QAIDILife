@@ -91,8 +91,12 @@ export const dataProvider: DataProvider = {
     ).toString();
     const path = query ? `/v1/admin/${resource}?${query}` : `/v1/admin/${resource}`;
 
-    const data = (await apiFetch<any[]>(path)) as any[];
-    return { data, total: data.length };
+    const result = await apiFetch<any>(path);
+    if (result && typeof result === "object" && "data" in result && Array.isArray(result.data)) {
+      return { data: result.data, total: result.total ?? result.data.length };
+    }
+    const arr = result as any[];
+    return { data: arr ?? [], total: arr?.length ?? 0 };
   },
 
   getMany: async ({ resource, ids }: any) => {

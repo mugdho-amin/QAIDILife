@@ -11,7 +11,11 @@ export class CheckoutService {
   /** Compute totals and create order. */
   async createCheckout(input: {
     cartId: string;
+    name: string;
     phone: string;
+    email?: string;
+    address: string;
+    deliveryNotes?: string;
     shippingZone: ShippingZone;
   }) {
     const cart = await this.prisma.cart.findUnique({
@@ -47,12 +51,16 @@ export class CheckoutService {
     const total = subtotal + shippingFee;
     const order = await this.prisma.order.create({
       data: {
+        name: input.name,
         phone: input.phone,
+        email: input.email ?? null,
+        address: input.address,
         shippingZone: input.shippingZone,
         shippingFee,
         subtotal,
         total,
         status: "pending",
+        notes: input.deliveryNotes ?? null,
         items: {
           create: itemsData,
         },

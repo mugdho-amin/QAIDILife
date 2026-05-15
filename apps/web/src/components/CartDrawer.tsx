@@ -72,28 +72,28 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           )}
         </div>
 
-          <div className="border-t border-black/10 px-5 py-4 space-y-3">
-            {cart?.items?.length ? (
+          {cart?.items?.length ? (
+            <div className="border-t border-black/10 px-5 py-4 space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-ink/60">Subtotal</span>
                 <span className="font-medium">৳{cart.subtotal.amount.toLocaleString("en-BD")}</span>
               </div>
-            ) : null}
-            <div className="flex gap-2">
-              <button
-                onClick={() => { onClose(); window.location.href = "/cart"; }}
-                className="flex-1 rounded-full border border-ink py-3.5 text-xs uppercase tracking-[0.3em] text-ink font-medium hover:bg-black/5 transition"
-              >
-                View Cart
-              </button>
-              <button
-                onClick={() => { onClose(); window.location.href = "/checkout"; }}
-                className="flex-1 rounded-full bg-ink py-3.5 text-xs uppercase tracking-[0.3em] text-white font-medium hover:bg-ink/90 transition"
-              >
-                Checkout
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { onClose(); window.location.href = "/cart"; }}
+                  className="flex-1 rounded-full border border-ink py-3.5 text-xs uppercase tracking-[0.3em] text-ink font-medium hover:bg-black/5 transition"
+                >
+                  View Cart
+                </button>
+                <button
+                  onClick={() => { onClose(); window.location.href = "/checkout"; }}
+                  className="flex-1 rounded-full bg-ink py-3.5 text-xs uppercase tracking-[0.3em] text-white font-medium hover:bg-ink/90 transition"
+                >
+                  Checkout
+                </button>
+              </div>
             </div>
-          </div>
+          ) : null}
       </div>
     </>
   );

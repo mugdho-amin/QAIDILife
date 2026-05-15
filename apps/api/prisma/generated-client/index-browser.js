@@ -170,6 +170,18 @@ exports.Prisma.CategoryScalarFieldEnum = {
   slug: 'slug',
   nameEn: 'nameEn',
   nameBn: 'nameBn',
+  descriptionEn: 'descriptionEn',
+  descriptionBn: 'descriptionBn',
+  image: 'image',
+  metaTitleEn: 'metaTitleEn',
+  metaTitleBn: 'metaTitleBn',
+  metaDescriptionEn: 'metaDescriptionEn',
+  metaDescriptionBn: 'metaDescriptionBn',
+  status: 'status',
+  featured: 'featured',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   parentId: 'parentId'
 };
 
@@ -233,7 +245,10 @@ exports.Prisma.CartItemScalarFieldEnum = {
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  name: 'name',
   phone: 'phone',
+  email: 'email',
+  address: 'address',
   shippingZone: 'shippingZone',
   shippingFee: 'shippingFee',
   subtotal: 'subtotal',

@@ -1,6 +1,7 @@
 import { readAdminToken } from "./auth";
 import type {
   AdminCategory,
+  AdminCategoryTreeNode,
   AdminMetrics,
   AdminOrder,
   AdminPayment,
@@ -50,7 +51,6 @@ const adminFetch = async <T>(
     return undefined as T;
   }
   const body = await response.json();
-  // API wraps all responses in { success, data, meta }
   return (body?.data ?? body) as T;
 };
 
@@ -108,9 +108,38 @@ export const deleteProduct = async (id: string) => {
   });
 };
 
-/** Fetch categories. */
-export const fetchCategories = async () => {
-  return adminFetch<AdminCategory[]>("/v1/admin/catalog/categories");
+// ── Categories ────────────────────────────────────────────
+
+/** Fetch categories with optional search, filter, pagination. */
+export const fetchCategories = async (params?: {
+  search?: string;
+  status?: string;
+  featured?: string;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  parentId?: string;
+}) => {
+  const query = params
+    ? "?" + new URLSearchParams(
+        Object.fromEntries(
+          Object.entries(params).map(([k, v]) => [k, String(v)]),
+        ),
+      ).toString()
+    : "";
+  return adminFetch<{ data: AdminCategory[]; total: number; page: number; limit: number; totalPages: number }>(
+    `/v1/admin/catalog/categories${query}`,
+  );
+};
+
+/** Fetch category tree (hierarchical). */
+export const fetchCategoryTree = async () => {
+  return adminFetch<AdminCategoryTreeNode[]>("/v1/admin/catalog/categories/tree");
+};
+
+/** Fetch single category. */
+export const fetchCategory = async (id: string) => {
+  return adminFetch<AdminCategory>(`/v1/admin/catalog/categories/${id}`);
 };
 
 /** Create a category. */
@@ -132,11 +161,38 @@ export const updateCategory = async (
   });
 };
 
+/** Reorder categories. */
+export const reorderCategories = async (orders: Array<{ id: string; order: number }>) => {
+  return adminFetch<{ success: boolean }>("/v1/admin/catalog/categories/reorder", {
+    method: "PATCH",
+    body: JSON.stringify({ orders }),
+  });
+};
+
+/** Toggle category status. */
+export const toggleCategoryStatus = async (id: string, status: string) => {
+  return adminFetch<AdminCategory>(`/v1/admin/catalog/categories/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+};
+
 /** Delete a category. */
 export const deleteCategory = async (id: string) => {
   return adminFetch<void>(`/v1/admin/catalog/categories/${id}`, {
     method: "DELETE",
   });
+};
+
+/** Bulk delete categories. */
+export const bulkDeleteCategories = async (ids: string[]) => {
+  return adminFetch<{ deleted: number; errors: string[] }>(
+    "/v1/admin/catalog/categories/bulk-delete",
+    {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    },
+  );
 };
 
 /** Fetch orders. */

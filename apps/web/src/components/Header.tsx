@@ -130,7 +130,7 @@ function MobileHeader({ onSearch, onCart, cartCount, wishlistCount }: { onSearch
           </button>
           <button aria-label="Cart" onClick={onCart} className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#e5dfd9]">
             <ShoppingCart className="h-4 w-4" />
-            {cartCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>}
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>
           </button>
           <button aria-label="Search" className="flex h-9 w-9 items-center justify-center" onClick={onSearch}>
             <Search className="h-4 w-4" />
@@ -174,7 +174,7 @@ function DesktopHeader({ navItems, hideTop, onSearch, onCart, cartCount, wishlis
           </button>
           <button aria-label="Cart" onClick={onCart} className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#e5dfd9] hover:bg-black/5 transition">
             <ShoppingCart className="h-4 w-4" />
-            {cartCount > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>}
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink text-[9px] text-white font-medium px-0.5">{cartCount}</span>
           </button>
           <button aria-label="Search" onClick={onSearch} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5dfd9] hover:bg-black/5 transition">
             <Search className="h-4 w-4" />

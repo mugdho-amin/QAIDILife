@@ -161,7 +161,11 @@ export interface components {
     };
     CheckoutRequest: {
       cart_id: string;
+      name: string;
       phone: string;
+      email?: string;
+      address: string;
+      delivery_notes?: string;
       /** @enum {string} */
       shipping_zone: "INSIDE_DHAKA" | "OUTSIDE_DHAKA";
     };
@@ -191,8 +195,20 @@ export interface components {
     Order: {
       id: string;
       status: string;
+      name: string;
       phone: string;
+      email?: string;
+      address: string;
+      notes?: string;
       items: components["schemas"]["CartItem"][];
+      payments: {
+        id: string;
+        provider: string;
+        status: string;
+        transaction_id?: string | null;
+        amount: components["schemas"]["Money"];
+        created_at: string;
+      }[];
       shipping: components["schemas"]["ShippingQuote"];
       subtotal: components["schemas"]["Money"];
       total: components["schemas"]["Money"];

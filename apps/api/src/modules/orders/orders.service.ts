@@ -14,7 +14,7 @@ export class OrdersService {
     }
     const orders = await this.prisma.order.findMany({
       where: { userId },
-      include: { items: true },
+      include: { items: true, payments: true },
       orderBy: { createdAt: "desc" },
     });
     const mapped = [] as ReturnType<typeof this.mapOrder>[];
@@ -31,7 +31,7 @@ export class OrdersService {
     }
     const order = await this.prisma.order.findFirst({
       where: { id, userId },
-      include: { items: true },
+      include: { items: true, payments: true },
     });
     if (!order) {
       throw new NotFoundException("Order not found");
@@ -43,7 +43,11 @@ export class OrdersService {
   private mapOrder(order: {
     id: string;
     status: string;
+    name: string;
     phone: string;
+    email: string | null;
+    address: string;
+    notes: string | null;
     shippingZone: string;
     shippingFee: number;
     subtotal: number;
@@ -58,6 +62,14 @@ export class OrdersService {
       titleEn: string;
       titleBn: string;
       image: string;
+    }>;
+    payments: Array<{
+      id: string;
+      provider: string;
+      status: string;
+      transactionId: string | null;
+      amount: number;
+      createdAt: Date;
     }>;
   }) {
     const items = [] as Array<{
@@ -85,11 +97,24 @@ export class OrdersService {
         line_total: { currency: "BDT", amount: lineTotal },
       });
     }
+    const payments = order.payments.map((p) => ({
+      id: p.id,
+      provider: p.provider,
+      status: p.status,
+      transaction_id: p.transactionId,
+      amount: { currency: "BDT" as const, amount: p.amount },
+      created_at: p.createdAt.toISOString(),
+    }));
     return {
       id: order.id,
       status: order.status,
+      name: order.name,
       phone: order.phone,
+      email: order.email ?? undefined,
+      address: order.address,
+      notes: order.notes ?? undefined,
       items,
+      payments,
       shipping: {
         zone: order.shippingZone,
         fee: { currency: "BDT", amount: order.shippingFee },

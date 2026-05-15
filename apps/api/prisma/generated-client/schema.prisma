@@ -69,17 +69,32 @@ model Address {
 }
 
 model Category {
-  id       String            @id @default(cuid())
-  slug     String            @unique
-  nameEn   String
-  nameBn   String
-  products ProductCategory[]
-  parentId String?
-  parent   Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children Category[]        @relation("CategoryHierarchy")
+  id                String            @id @default(cuid())
+  slug              String            @unique
+  nameEn            String
+  nameBn            String
+  descriptionEn     String?
+  descriptionBn     String?
+  image             String?
+  metaTitleEn       String?
+  metaTitleBn       String?
+  metaDescriptionEn String?
+  metaDescriptionBn String?
+  status            String            @default("active")
+  featured          Boolean           @default(false)
+  order             Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  products          ProductCategory[]
+  parentId          String?
+  parent            Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children          Category[]        @relation("CategoryHierarchy")
 
   @@index([slug])
   @@index([parentId])
+  @@index([order])
+  @@index([status])
+  @@index([featured])
 }
 
 model Product {
@@ -176,7 +191,10 @@ model Order {
   id           String      @id @default(cuid())
   userId       String?
   user         User?       @relation(fields: [userId], references: [id])
+  name         String
   phone        String
+  email        String?
+  address      String
   shippingZone String
   shippingFee  Int
   subtotal     Int

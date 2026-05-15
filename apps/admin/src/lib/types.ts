@@ -52,6 +52,26 @@ export interface AdminCategory {
   slug: string;
   nameEn: string;
   nameBn: string;
+  descriptionEn?: string | null;
+  descriptionBn?: string | null;
+  image?: string | null;
+  order: number;
+  parentId?: string | null;
+  status: string;
+  featured: boolean;
+  metaTitleEn?: string | null;
+  metaTitleBn?: string | null;
+  metaDescriptionEn?: string | null;
+  metaDescriptionBn?: string | null;
+  productCount: number;
+  childrenCount: number;
+  createdAt: string;
+  updatedAt: string;
+  parent?: { id: string; nameEn: string; nameBn: string; slug: string } | null;
+}
+
+export interface AdminCategoryTreeNode extends AdminCategory {
+  children: AdminCategoryTreeNode[];
 }
 
 /** Admin order data. */
