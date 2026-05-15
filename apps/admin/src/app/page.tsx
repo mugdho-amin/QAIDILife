@@ -106,16 +106,16 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 rounded-2xl border border-mist bg-panel p-6 shadow-sm">
+          <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-panel">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-ink">Recent Activity</h3>
-              <button className="text-xs text-text-muted hover:text-ink transition">View all</button>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground">Recent Activity</h3>
+              <button className="text-xs text-muted-foreground hover:text-foreground transition">View all</button>
             </div>
             <div className="space-y-0">
               {activities.map((item: { action: string; detail: string; time: string; type: string }, i: number) => (
                 <div
                   key={i}
-                  className="flex items-center gap-4 py-3 border-b border-mist/50 last:border-0 animate-fade-in"
+                  className="flex items-center gap-4 py-3 border-b border-border/50 last:border-0 animate-fade-in"
                   style={{ animationDelay: `${i * 50}ms` }}
                 >
                   <div className={cn(
@@ -126,37 +126,37 @@ export default function AdminDashboardPage() {
                     <Activity className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ink truncate">{item.action}</p>
-                    <p className="text-xs text-text-muted truncate">{item.detail}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{item.action}</p>
+                    <p className="text-xs text-muted-foreground truncate">{item.detail}</p>
                   </div>
-                  <span className="text-xs text-text-muted shrink-0">{item.time}</span>
+                  <span className="text-xs text-muted-foreground shrink-0">{item.time}</span>
                 </div>
               ))}
               {activities.length === 0 && !isLoading && (
-                <p className="text-sm text-text-muted py-3 text-center">No recent orders</p>
+                <p className="text-sm text-muted-foreground py-3 text-center">No recent orders</p>
               )}
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-mist bg-panel p-6 shadow-sm">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-ink mb-4">Quick Stats</h3>
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-panel">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground mb-4">Quick Stats</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-secondary">Pending Orders</span>
+                  <span className="text-sm text-muted-foreground">Pending Orders</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{isLoading ? "—" : metrics.pendingOrders}</span>
                   </div>
                 </div>
-                <div className="h-px bg-mist/50" />
+                <div className="h-px bg-border/50" />
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-secondary">Low Stock Items</span>
+                  <span className="text-sm text-muted-foreground">Low Stock Items</span>
                   <span className="text-sm font-semibold">{isLoading ? "—" : metrics.lowStockItems}</span>
                 </div>
-                <div className="h-px bg-mist/50" />
+                <div className="h-px bg-border/50" />
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-secondary">Revenue Growth</span>
-                  <span className={`text-sm font-semibold ${metrics.revenueGrowth >= 0 ? "text-emerald-600" : "text-danger"}`}>
+                  <span className="text-sm text-muted-foreground">Revenue Growth</span>
+                  <span className={`text-sm font-semibold ${metrics.revenueGrowth >= 0 ? "text-emerald-600" : "text-destructive"}`}>
                     {isLoading ? "—" : `${metrics.revenueGrowth >= 0 ? "+" : ""}${metrics.revenueGrowth ?? 0}%`}
                   </span>
                 </div>

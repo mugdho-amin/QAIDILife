@@ -21,10 +21,10 @@ export function AdminGate({ children }: AdminGateProps) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-canvas">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-mist border-t-ink" />
-          <p className="text-sm text-text-muted">Loading console...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+          <p className="text-sm text-muted-foreground">Loading console...</p>
         </div>
       </div>
     );

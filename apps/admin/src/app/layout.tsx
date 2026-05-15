@@ -64,7 +64,7 @@ export default function RootLayout({
       className={`${uiFont.variable} ${displayFont.variable} ${monoFont.variable} h-full`}
       suppressHydrationWarning
     >
-      <body className="min-h-full bg-canvas text-ink antialiased">
+      <body className="min-h-full bg-background text-foreground antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
