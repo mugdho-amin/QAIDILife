@@ -53,40 +53,40 @@ export class AdminCatalogService {
 
   async createProduct(input: {
     titleEn: string;
-    titleBn: string;
+    titleBn?: string | null;
     slug: string;
-    descriptionEn: string;
-    descriptionBn: string;
-    primaryImage: string;
-    gallery: string[];
+    descriptionEn?: string | null;
+    descriptionBn?: string | null;
+    primaryImage?: string | null;
+    gallery?: Array<string | { url: string; variantIds: string[] }> | null;
     price: number;
     compareAt?: number | null;
-    currency?: string;
+    currency?: string | null;
     variants: Array<{
       sku: string;
-      size: string;
-      color: string;
-      stock: number;
+      size?: string | null;
+      color?: string | null;
+      stock?: number | null;
       price: number;
       compareAt?: number | null;
-      image?: string;
+      image?: string | null;
       weight?: number | null;
-      barcode?: string;
-      lowStockThreshold?: number;
-      enabled?: boolean;
-      sortOrder?: number;
+      barcode?: string | null;
+      lowStockThreshold?: number | null;
+      enabled?: boolean | null;
+      sortOrder?: number | null;
     }>;
-    categoryIds?: string[];
+    categoryIds?: string[] | null;
   }) {
     const product = await this.prisma.product.create({
       data: {
         titleEn: input.titleEn,
-        titleBn: input.titleBn,
+        titleBn: input.titleBn ?? '',
         slug: input.slug,
-        descriptionEn: input.descriptionEn,
-        descriptionBn: input.descriptionBn,
-        primaryImage: input.primaryImage,
-        gallery: JSON.stringify(input.gallery),
+        descriptionEn: input.descriptionEn ?? '',
+        descriptionBn: input.descriptionBn ?? '',
+        primaryImage: input.primaryImage ?? '',
+        gallery: JSON.stringify(input.gallery ?? []),
         price: input.price,
         compareAt: input.compareAt,
         currency: input.currency ?? 'BDT',
@@ -94,9 +94,9 @@ export class AdminCatalogService {
         variants: {
           create: input.variants.map((variant, idx) => ({
             sku: variant.sku,
-            size: variant.size,
-            color: variant.color,
-            stock: variant.stock,
+            size: variant.size ?? '',
+            color: variant.color ?? '',
+            stock: variant.stock ?? 0,
             price: variant.price,
             compareAt: variant.compareAt,
             image: variant.image,
@@ -127,30 +127,30 @@ export class AdminCatalogService {
     id: string,
     input: Partial<{
       titleEn: string;
-      titleBn: string;
+      titleBn: string | null;
       slug: string;
-      descriptionEn: string;
-      descriptionBn: string;
-      primaryImage: string;
-      gallery: string[];
+      descriptionEn: string | null;
+      descriptionBn: string | null;
+      primaryImage: string | null;
+      gallery: Array<string | { url: string; variantIds: string[] }> | null;
       price: number;
       compareAt?: number | null;
-      currency?: string;
+      currency?: string | null;
       variants: Array<{
         sku: string;
-        size: string;
-        color: string;
-        stock: number;
+        size: string | null;
+        color: string | null;
+        stock: number | null;
         price: number;
         compareAt?: number | null;
-        image?: string;
+        image?: string | null;
         weight?: number | null;
-        barcode?: string;
-        lowStockThreshold?: number;
-        enabled?: boolean;
-        sortOrder?: number;
+        barcode?: string | null;
+        lowStockThreshold?: number | null;
+        enabled?: boolean | null;
+        sortOrder?: number | null;
       }>;
-      categoryIds: string[];
+      categoryIds: string[] | null;
     }>,
   ) {
     const data: Record<string, unknown> = {};
@@ -168,7 +168,7 @@ export class AdminCatalogService {
     if (input.categoryIds !== undefined) {
       data.categories = {
         deleteMany: {},
-        create: input.categoryIds.map((categoryId) => ({
+        create: (input.categoryIds ?? []).map((categoryId) => ({
           category: { connect: { id: categoryId } },
         })),
       };
@@ -207,9 +207,9 @@ export class AdminCatalogService {
       if (toCreate.length > 0) {
         operations.create = toCreate.map((variant, idx) => ({
           sku: variant.sku,
-          size: variant.size,
-          color: variant.color,
-          stock: variant.stock,
+          size: variant.size ?? '',
+          color: variant.color ?? '',
+          stock: variant.stock ?? 0,
           price: variant.price,
           compareAt: variant.compareAt,
           image: variant.image,
@@ -225,9 +225,9 @@ export class AdminCatalogService {
         await this.prisma.variant.update({
           where: { id: update.id },
           data: {
-            size: update.data.size,
-            color: update.data.color,
-            stock: update.data.stock,
+            size: update.data.size ?? '',
+            color: update.data.color ?? '',
+            stock: update.data.stock ?? 0,
             price: update.data.price,
             compareAt: update.data.compareAt,
             image: update.data.image,
@@ -425,17 +425,17 @@ export class AdminCatalogService {
     nameEn: string;
     nameBn: string;
     slug: string;
-    descriptionEn?: string;
-    descriptionBn?: string;
-    parentId?: string;
-    image?: string;
+    descriptionEn?: string | null;
+    descriptionBn?: string | null;
+    parentId?: string | null;
+    image?: string | null;
     order?: number;
     status?: string;
     featured?: boolean;
-    metaTitleEn?: string;
-    metaTitleBn?: string;
-    metaDescriptionEn?: string;
-    metaDescriptionBn?: string;
+    metaTitleEn?: string | null;
+    metaTitleBn?: string | null;
+    metaDescriptionEn?: string | null;
+    metaDescriptionBn?: string | null;
   }) {
     if (input.parentId) {
       const parent = await this.prisma.category.findUnique({ where: { id: input.parentId } });
@@ -469,17 +469,17 @@ export class AdminCatalogService {
       nameEn: string;
       nameBn: string;
       slug: string;
-      descriptionEn: string;
-      descriptionBn: string;
-      parentId?: string;
-      image?: string;
+      descriptionEn: string | null;
+      descriptionBn: string | null;
+      parentId?: string | null;
+      image?: string | null;
       order?: number;
       status?: string;
       featured?: boolean;
-      metaTitleEn?: string;
-      metaTitleBn?: string;
-      metaDescriptionEn?: string;
-      metaDescriptionBn?: string;
+      metaTitleEn?: string | null;
+      metaTitleBn?: string | null;
+      metaDescriptionEn?: string | null;
+      metaDescriptionBn?: string | null;
     }>,
   ) {
     const category = await this.prisma.category.findUnique({ where: { id } });
@@ -600,7 +600,7 @@ export class AdminCatalogService {
     if (Array.isArray(gallery)) {
       return gallery.map((item) => {
         if (typeof item === 'string') return item;
-        if (item && typeof item === 'object' && 'url' in item) return (item as { url: string }).url;
+        if (item && typeof item === 'object' && 'url' in item) return item;
         return String(item);
       });
     }
@@ -610,7 +610,7 @@ export class AdminCatalogService {
         if (Array.isArray(parsed)) {
           return parsed.map((item: unknown) => {
             if (typeof item === 'string') return item;
-            if (item && typeof item === 'object' && 'url' in item) return (item as { url: string }).url;
+            if (item && typeof item === 'object' && 'url' in item) return item;
             return String(item);
           });
         }

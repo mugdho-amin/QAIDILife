@@ -81,7 +81,7 @@ export function Sidebar({ noHeader }: { noHeader?: boolean } = { noHeader: false
                       className={cn(
                         "flex w-full items-center justify-center rounded-xl p-2.5 transition-all duration-200 mx-auto",
                         hasActiveChild
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                          ? "bg-foreground/10 text-foreground"
                           : "text-sidebar-foreground hover:bg-sidebar-accent",
                       )}
                     >
@@ -98,11 +98,11 @@ export function Sidebar({ noHeader }: { noHeader?: boolean } = { noHeader: false
                       className={cn(
                         "flex items-center transition-all duration-200 rounded-xl w-full gap-3 px-3 py-2.5 text-sm relative",
                         hasActiveChild
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                          ? "bg-foreground/10 text-foreground font-medium"
                           : "text-sidebar-foreground hover:bg-sidebar-accent",
                       )}
                     >
-                      {hasActiveChild && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-sidebar-primary-foreground/70" />}
+                      {hasActiveChild && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-foreground/30" />}
                       <item.icon className="h-4 w-4 shrink-0" />
                       {item.label}
                       <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200 ml-auto", open && "rotate-180")} />
@@ -114,11 +114,11 @@ export function Sidebar({ noHeader }: { noHeader?: boolean } = { noHeader: false
                             className={cn(
                               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 relative",
                               isActive(child.href)
-                                ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                                ? "bg-foreground/10 text-foreground font-medium"
                                 : "text-sidebar-foreground hover:bg-sidebar-accent",
                             )}
                           >
-                            {isActive(child.href) && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full bg-sidebar-primary-foreground/70" />}
+                            {isActive(child.href) && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full bg-foreground/30" />}
                             <child.icon className="h-3.5 w-3.5 shrink-0" />
                             {child.label}
                           </Link>
@@ -141,11 +141,11 @@ export function Sidebar({ noHeader }: { noHeader?: boolean } = { noHeader: false
                       ? "justify-center p-2.5 mx-auto"
                       : "gap-3 px-3 py-2.5 text-sm",
                     active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-sm"
+                      ? "bg-foreground/10 text-foreground font-medium shadow-sm"
                       : "text-sidebar-foreground hover:bg-sidebar-accent",
                   )}
                 >
-                  {active && !collapsed && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-sidebar-primary-foreground/70" />}
+                  {active && !collapsed && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-foreground/30" />}
                   <item.icon className={cn("shrink-0", collapsed ? "h-5 w-5" : "h-4 w-4")} />
                   {!collapsed && item.label}
                 </Link>

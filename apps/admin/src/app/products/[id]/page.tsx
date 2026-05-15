@@ -164,8 +164,12 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
-      if (key === "primaryImage") updateField("primaryImage", dataUrl);
-      else setForm((prev) => ({ ...prev, gallery: [...prev.gallery, { url: dataUrl, variantIds: [] }] }));
+      if (key === "primaryImage") {
+        clearFieldError("primaryImage");
+        updateField("primaryImage", dataUrl);
+      } else {
+        setForm((prev) => ({ ...prev, gallery: [...prev.gallery, { url: dataUrl, variantIds: [] }] }));
+      }
       open?.({ type: "success", message: "Image uploaded" });
     };
     reader.onerror = () => open?.({ type: "error", message: "Failed to read file" });
@@ -246,7 +250,7 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
 
   const addVariant = () => {
     const idx = form.variants.length;
-    setForm((p) => ({ ...p, variants: [...p.variants, emptyVariant(idx)] }));
+    setForm((p) => ({ ...p, variants: [...p.variants, { ...emptyVariant(idx), price: p.price }] }));
     setExpandedVariants((prev) => new Set(prev).add(idx));
     setTimeout(() => variantContainerRef.current?.scrollTo({ top: variantContainerRef.current.scrollHeight, behavior: "smooth" }), 50);
   };
@@ -254,7 +258,7 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
   const removeVariant = (index: number) => {
     setForm((p) => {
       const next = p.variants.filter((_, i) => i !== index).map((v, i) => ({ ...v, sortOrder: i }));
-      return { ...p, variants: next.length ? next : [emptyVariant(0)] };
+      return { ...p, variants: next.length ? next : [{ ...emptyVariant(0), price: p.price }] };
     });
     setExpandedVariants((prev) => {
       const next = new Set(prev);
@@ -365,7 +369,7 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
     const generated: VariantForm[] = [];
     for (const size of sizes) {
       for (const color of colors) {
-        generated.push({ ...emptyVariant(idx++), size, color });
+        generated.push({ ...emptyVariant(idx++), size, color, price: form.price });
       }
     }
     if (generated.length === 0) return;
@@ -425,23 +429,59 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
   };
 
   const handleSave = () => {
-    if (!form.titleEn || !form.slug) {
-      open?.({ type: "error", message: "Title (English) and Slug are required" }); return;
+    const newErrors: Record<string, string> = {};
+
+    if (!form.titleEn) newErrors["titleEn"] = "Title (English) is required";
+    if (!form.slug) newErrors["slug"] = "Slug is required";
+    if (!form.primaryImage) newErrors["primaryImage"] = "Primary image is required";
+    if (form.price === null || form.price === undefined || form.price <= 0) {
+      newErrors["price"] = "Price must be greater than 0";
     }
+    if (!form.categoryIds || form.categoryIds.length === 0) {
+      newErrors["categoryIds"] = "At least one category is required";
+    }
+
     if (hasVariants) {
-      const invalidVariants = form.variants.some((v) => !v.sku || (!v.size && !v.color));
-      if (invalidVariants) {
-        open?.({ type: "error", message: "All variants must have a SKU and at least one option (size or color)" }); return;
+      form.variants.forEach((v, i) => {
+        if (!v.sku) newErrors[`variants.${i}.sku`] = "SKU is required";
+        if (!v.size && !v.color) newErrors[`variants.${i}.options`] = "Size or color required";
+      });
+    } else {
+      if (!form.variants[0]?.sku) {
+        newErrors["variants.0.sku"] = "Product SKU is required";
       }
     }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      open?.({ type: "error", message: "Validation failed. Please check all fields." });
+      return;
+    }
+
     setFieldErrors({});
+
+    // Clean up variants: ensure stock/price are numbers, and other fields are null if empty
+    const cleanVariants = form.variants.map((v, i) => ({
+      ...v,
+      stock: Number(v.stock ?? 0),
+      price: Number(v.price ?? (hasVariants ? 0 : form.price ?? 0)),
+      compareAt: v.compareAt === null || v.compareAt === undefined ? null : Number(v.compareAt),
+      weight: v.weight === null || v.weight === undefined ? null : Number(v.weight),
+      lowStockThreshold: v.lowStockThreshold === null || v.lowStockThreshold === undefined ? 5 : Number(v.lowStockThreshold),
+      sortOrder: i,
+      sku: v.sku.trim(),
+      barcode: v.barcode?.trim() || null,
+      image: v.image || null,
+    }));
+
     const values = {
       ...form,
       gallery: form.gallery.map((g) => g.variantIds.length > 0 ? g : g.url),
-      variants: hasVariants
-        ? form.variants.map((v, i) => ({ ...v, stock: v.stock ?? 0, price: v.price ?? 0, sortOrder: i }))
-        : form.variants.map((v, i) => ({ ...v, stock: v.stock ?? 0, price: v.price ?? form.price ?? 0, sortOrder: i })),
+      variants: hasVariants ? cleanVariants : [cleanVariants[0]],
+      price: Number(form.price ?? 0),
+      compareAt: form.compareAt === null || form.compareAt === undefined ? null : Number(form.compareAt),
     };
+
     if (isNew) {
       createMutate({ resource: "catalog/products", values }, {
         onSuccess: () => router.push("/products"),
@@ -532,6 +572,9 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
                   ? "border-danger/50 focus:border-danger focus:ring-danger/10 bg-danger/5"
                   : "border-mist bg-canvas focus:border-ink/30 focus:ring-ink/10"
               }`} />
+            {fieldErrors["descriptionEn"] && (
+              <p className="text-[10px] text-danger mt-1 font-medium">{fieldErrors["descriptionEn"]}</p>
+            )}
           </label>
           <label className="flex flex-col gap-1.5 text-xs uppercase tracking-[0.3em] text-text-muted font-medium">
             Description (Bengali)
@@ -541,21 +584,35 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
                   ? "border-danger/50 focus:border-danger focus:ring-danger/10 bg-danger/5"
                   : "border-mist bg-canvas focus:border-ink/30 focus:ring-ink/10"
               }`} />
+            {fieldErrors["descriptionBn"] && (
+              <p className="text-[10px] text-danger mt-1 font-medium">{fieldErrors["descriptionBn"]}</p>
+            )}
           </label>
 
           {/* Primary Image */}
           <div className="space-y-3">
-            <label className="text-xs uppercase tracking-[0.3em] text-text-muted font-medium">Primary Image</label>
+            <label className="text-xs uppercase tracking-[0.3em] text-text-muted font-medium">Primary Image *</label>
             <div className="grid grid-cols-[auto_1fr] gap-2">
-              <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-mist bg-canvas text-text-muted hover:bg-accent-soft transition ${
-                hasVariants ? "px-3 py-2 text-xs" : "px-6 py-3 text-sm"
-              }`}>
-                <Upload className={`${hasVariants ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
-                <span>Choose File</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload("primaryImage", f); e.target.value = ""; }} />
-              </label>
-              <Input value={form.primaryImage} onChange={(e) => updateField("primaryImage", e.target.value)}
-                placeholder="https://cdn.qaidilife.com/images/product.jpg" error={fieldErrors["primaryImage"]} />
+              <div className="flex flex-col gap-1.5">
+                <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border transition ${
+                  hasVariants ? "px-3 py-2 text-xs" : "px-6 py-3 text-sm"
+                } ${
+                  fieldErrors["primaryImage"]
+                    ? "border-danger/50 bg-danger/5 text-danger"
+                    : "border-mist bg-canvas text-text-muted hover:bg-accent-soft"
+                }`}>
+                  <Upload className={`${hasVariants ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
+                  <span>Choose File</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload("primaryImage", f); e.target.value = ""; }} />
+                </label>
+                {fieldErrors["primaryImage"] && (
+                  <p className="text-[10px] text-danger font-medium">{fieldErrors["primaryImage"]}</p>
+                )}
+              </div>
+              <Input value={form.primaryImage} onChange={(e) => { clearFieldError("primaryImage"); updateField("primaryImage", e.target.value); }}
+                placeholder="https://cdn.qaidilife.com/images/product.jpg"
+                className={fieldErrors["primaryImage"] ? "border-danger/50 focus:border-danger focus:ring-danger/10 bg-danger/5" : ""}
+              />
             </div>
             {form.primaryImage && (
               <div className="relative inline-block group">
@@ -658,17 +715,45 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
             </div>
             <div className={`grid gap-3 ${hasVariants ? "grid-cols-2" : "sm:grid-cols-5"}`}>
               <div>
-                <label className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-medium">Price (BDT)</label>
-                <input type="number" value={form.price ?? ""} onChange={(e) => updateField("price", e.target.value ? Number(e.target.value) : null)}
+                <label className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-medium">Price *</label>
+                <input type="number" value={form.price ?? ""} onChange={(e) => { 
+                  const val = e.target.value ? Number(e.target.value) : null;
+                  clearFieldError("price"); 
+                  setForm(prev => ({
+                    ...prev,
+                    price: val,
+                    variants: prev.variants.map(v => ({
+                      ...v,
+                      price: (v.price === null || v.price === 0 || v.price === prev.price) ? val : v.price
+                    }))
+                  }));
+                }}
                   placeholder="0"
-                  className="w-full rounded-xl border border-mist bg-canvas px-4 py-2.5 text-sm text-ink outline-none focus:border-ink/30 focus:ring-1 focus:ring-ink/10 mt-1" />
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm text-ink outline-none transition focus:ring-1 mt-1 ${
+                    fieldErrors["price"]
+                      ? "border-danger/50 focus:border-danger focus:ring-danger/10 bg-danger/5"
+                      : "border-mist bg-canvas focus:border-ink/30 focus:ring-ink/10"
+                  }`} />
+                {fieldErrors["price"] && (
+                  <p className="text-[10px] text-danger mt-1 font-medium">{fieldErrors["price"]}</p>
+                )}
                 {hasVariants && form.variants.length > 1 && form.price !== null && (
                   <button onClick={applyBasePriceToVariants} className="mt-1 text-[10px] uppercase tracking-[0.15em] text-info hover:text-info/80 transition">Apply to all variants</button>
                 )}
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-medium">Compare At</label>
-                <input type="number" value={form.compareAt ?? ""} onChange={(e) => updateField("compareAt", e.target.value ? Number(e.target.value) : null)}
+                <input type="number" value={form.compareAt ?? ""} onChange={(e) => {
+                  const val = e.target.value ? Number(e.target.value) : null;
+                  setForm(prev => ({
+                    ...prev,
+                    compareAt: val,
+                    variants: prev.variants.map(v => ({
+                      ...v,
+                      compareAt: (v.compareAt === null || v.compareAt === 0 || v.compareAt === prev.compareAt) ? val : v.compareAt
+                    }))
+                  }));
+                }}
                   placeholder="0"
                   className="w-full rounded-xl border border-mist bg-canvas px-4 py-2.5 text-sm text-ink outline-none focus:border-ink/30 focus:ring-1 focus:ring-ink/10 mt-1" />
               </div>
@@ -705,17 +790,24 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
           {!hasVariants && (
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
-                <label className="text-xs uppercase tracking-[0.2em] text-text-muted font-medium">SKU</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-text-muted font-medium">SKU *</label>
                 <div className="relative mt-1">
                   <input type="text" value={form.variants[0]?.sku ?? ""}
-                    onChange={(e) => updateVariant(0, "sku", e.target.value)}
+                    onChange={(e) => { clearFieldError("variants.0.sku"); updateVariant(0, "sku", e.target.value); }}
                     placeholder="QA-..."
-                    className="w-full rounded-xl border border-mist bg-canvas px-4 py-2.5 pr-10 text-sm text-ink outline-none focus:border-ink/30 focus:ring-1 focus:ring-ink/10" />
+                    className={`w-full rounded-xl border px-4 py-2.5 pr-10 text-sm text-ink outline-none transition focus:ring-1 ${
+                      fieldErrors["variants.0.sku"]
+                        ? "border-danger/50 focus:border-danger focus:ring-danger/10 bg-danger/5"
+                        : "border-mist bg-canvas focus:border-ink/30 focus:ring-ink/10"
+                    }`} />
                   <button onClick={() => generateSingleSku(0)}
                     className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-lg hover:bg-accent-soft transition" title="Generate SKU">
                     <WandSparkles className="h-3 w-3 text-text-muted" />
                   </button>
                 </div>
+                {fieldErrors["variants.0.sku"] && (
+                  <p className="text-[10px] text-danger mt-1 font-medium">{fieldErrors["variants.0.sku"]}</p>
+                )}
               </div>
               <div>
                 <label className="text-xs uppercase tracking-[0.2em] text-text-muted font-medium">Barcode / EAN</label>
@@ -742,8 +834,11 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
 
           {/* Categories */}
           <div>
-            <h3 className="text-xs uppercase tracking-[0.3em] text-text-muted font-medium mb-3">Categories</h3>
+            <h3 className="text-xs uppercase tracking-[0.3em] text-text-muted font-medium mb-3">Categories *</h3>
             <div className="flex flex-wrap gap-2">{categoryBadges}</div>
+            {fieldErrors["categoryIds"] && (
+              <p className="text-[10px] text-danger mt-2 font-medium">{fieldErrors["categoryIds"]}</p>
+            )}
           </div>
         </section>
 
@@ -885,6 +980,9 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
                                 <span className={`text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-full ${status.class} bg-current/5`}>
                                   {status.label}
                                 </span>
+                                {fieldErrors[`variants.${actualIdx}.options`] && (
+                                  <span className="text-[10px] text-danger font-medium">{fieldErrors[`variants.${actualIdx}.options`]}</span>
+                                )}
                               </div>
                               <div className="flex items-center gap-0.5 opacity-0 group-hover/variant:opacity-100 transition">
                                 <button onClick={() => toggleVariantExpand(displayIdx)}
@@ -1028,7 +1126,7 @@ export default function ProductEditorPage({ params }: ProductEditorProps) {
                             <div className="grid gap-3 sm:grid-cols-3">
                               <div>
                                 <label className="flex flex-col gap-1">
-                                  <span className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-medium">Price (BDT)</span>
+                                  <span className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-medium">Price</span>
                                   <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">{getCurrencySymbol(form.currency)}</span>
                                     <input type="number" value={variant.price ?? ""} onChange={(e) => updateVariant(actualIdx, "price", e.target.value ? Number(e.target.value) : null)} placeholder="0"

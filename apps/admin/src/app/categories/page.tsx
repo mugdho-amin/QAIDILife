@@ -13,7 +13,7 @@ import type { CategoryFormData } from "@/components/CategoryFormModal";
 import { useNotification } from "@refinedev/core";
 import {
   Plus, Search, SlidersHorizontal, ChevronDown, ChevronRight,
-  Trash2, Download, Star,
+  Trash2, Download, Upload, Star,
   FolderTree, Table2, RefreshCw, X, SquareStack,
   Layers, AlertTriangle, FileJson, FileSpreadsheet,
 } from "lucide-react";
@@ -386,6 +386,55 @@ export default function CategoriesPage() {
     }
   };
 
+  // ── Import ────────────────────────────────────────────
+
+  const importCategoriesFromFile = async (file: File | undefined, format: "csv" | "json") => {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      let records: Array<{ nameEn: string; nameBn?: string; slug?: string; status?: string }> = [];
+      if (format === "json") {
+        const parsed = JSON.parse(text);
+        records = Array.isArray(parsed) ? parsed : [parsed];
+      } else {
+        const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+        if (lines.length < 2) { open?.({ type: "error", message: "CSV must have a header row and at least one data row" }); return; }
+        const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim().toLowerCase());
+        const nameIdx = headers.indexOf("nameen") ?? headers.indexOf("name_en") ?? headers.indexOf("name") ?? -1;
+        const bnIdx = headers.indexOf("namebn") ?? headers.indexOf("name_bn") ?? -1;
+        const slugIdx = headers.indexOf("slug") ?? -1;
+        if (nameIdx === -1) { open?.({ type: "error", message: "CSV must have a 'nameEn' column" }); return; }
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(",").map((c) => c.replace(/"/g, "").trim());
+          records.push({
+            nameEn: cols[nameIdx] ?? "",
+            nameBn: bnIdx >= 0 ? cols[bnIdx] ?? "" : "",
+            slug: slugIdx >= 0 ? cols[slugIdx] ?? "" : "",
+          });
+        }
+      }
+      let created = 0; let errors = 0;
+      for (const rec of records) {
+        if (!rec.nameEn) { errors++; continue; }
+        try {
+          await apiFetch("/v1/admin/catalog/categories", {
+            method: "POST",
+            body: JSON.stringify({
+              nameEn: rec.nameEn, nameBn: rec.nameBn ?? "",
+              slug: rec.slug || rec.nameEn.toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/^-+|-+$/g, ""),
+              status: rec.status || "active",
+            }),
+          });
+          created++;
+        } catch { errors++; }
+      }
+      open?.({ type: "success", message: `${created} categories imported${errors ? `, ${errors} failed` : ""}` });
+      loadCategories();
+    } catch (err) {
+      open?.({ type: "error", message: "Failed to import file" });
+    }
+  };
+
   // ── Export ────────────────────────────────────────────
 
   const exportCSV = () => {
@@ -562,7 +611,7 @@ export default function CategoriesPage() {
               <button className="rounded-xl border border-mist bg-panel p-2.5 text-text-muted hover:text-ink hover:bg-accent-soft transition" title="Export">
                 <Download className="h-4 w-4" />
               </button>
-              <div className="absolute right-0 top-full mt-1 hidden group-hover:block group-focus-within:block z-20 min-w-[140px]">
+              <div className="absolute right-0 top-full mt-1 hidden group-hover:block group-focus-within:block z-20 min-w-[160px]">
                 <div className="bg-panel border border-mist rounded-xl shadow-lg p-1.5 space-y-0.5">
                   <button onClick={exportCSV} className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-accent-soft transition">
                     <FileSpreadsheet className="h-3.5 w-3.5 text-text-muted" /> Export CSV
@@ -570,6 +619,23 @@ export default function CategoriesPage() {
                   <button onClick={exportJSON} className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-accent-soft transition">
                     <FileJson className="h-3.5 w-3.5 text-text-muted" /> Export JSON
                   </button>
+                </div>
+              </div>
+            </div>
+            <div className="relative group">
+              <button className="rounded-xl border border-mist bg-panel p-2.5 text-text-muted hover:text-ink hover:bg-accent-soft transition" title="Import">
+                <Upload className="h-4 w-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-1 hidden group-hover:block group-focus-within:block z-20 min-w-[160px]">
+                <div className="bg-panel border border-mist rounded-xl shadow-lg p-1.5 space-y-0.5">
+                  <label className="flex cursor-pointer items-center gap-2 w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-accent-soft transition">
+                    <FileSpreadsheet className="h-3.5 w-3.5 text-text-muted" /> Import CSV
+                    <input type="file" accept=".csv" className="hidden" onChange={(e) => { importCategoriesFromFile(e.target.files?.[0], "csv"); e.target.value = ""; }} />
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-accent-soft transition">
+                    <FileJson className="h-3.5 w-3.5 text-text-muted" /> Import JSON
+                    <input type="file" accept=".json" className="hidden" onChange={(e) => { importCategoriesFromFile(e.target.files?.[0], "json"); e.target.value = ""; }} />
+                  </label>
                 </div>
               </div>
             </div>

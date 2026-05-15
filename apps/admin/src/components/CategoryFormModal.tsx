@@ -119,7 +119,7 @@ export function CategoryFormModal({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-overlay/80 data-[state=open]:animate-fade-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-card shadow-dialog data-[state=open]:animate-scale-in">
+        <Dialog.Content aria-describedby={undefined} className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-card shadow-dialog data-[state=open]:animate-scale-in">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
             <Dialog.Title className="text-base font-semibold text-foreground">
               {isEditing ? "Edit Category" : "Create Category"}

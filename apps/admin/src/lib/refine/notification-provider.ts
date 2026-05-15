@@ -4,7 +4,29 @@ let toastId = 0;
 
 function showToast(message: string, type: "success" | "error" | "info" = "info") {
   const id = ++toastId;
+  
+  // Clean up stray containers if any exist from previous versions or sessions
+  const strayContainers = document.querySelectorAll("[id='qaidilife-toast-container']");
+  if (strayContainers.length > 1) {
+    strayContainers.forEach((c, i) => { if (i < strayContainers.length - 1) c.remove(); });
+  }
+
   const container = document.getElementById("qaidilife-toast-container") || createContainer();
+  
+  // Strictly enforce top-center style to override any potential CSS collisions
+  container.style.position = "fixed";
+  container.style.top = "0";
+  container.style.bottom = "auto";
+  container.style.left = "50%";
+  container.style.transform = "translateX(-50%)";
+  container.style.zIndex = "9999";
+  container.className = "flex flex-col items-center gap-3 p-6 pointer-events-none";
+
+  // Max 2 toasts: remove oldest if count >= 2
+  const existingToasts = Array.from(container.children);
+  if (existingToasts.length >= 2) {
+    existingToasts[0].remove();
+  }
 
   const toast = document.createElement("div");
   toast.id = `toast-${id}`;
@@ -26,16 +48,16 @@ function showToast(message: string, type: "success" | "error" | "info" = "info")
     const el = document.getElementById(`toast-${id}`);
     if (el) {
       el.style.opacity = "0";
-      el.style.transform = "translateY(8px)";
+      el.style.transform = "translateY(-8px)";
       setTimeout(() => el.remove(), 300);
     }
-  }, 4000);
+  }, 5000);
 }
 
 function createContainer() {
   const container = document.createElement("div");
   container.id = "qaidilife-toast-container";
-  container.className = "fixed bottom-0 left-1/2 -translate-x-1/2 z-[100] flex flex-col-reverse items-center gap-3 p-6 pointer-events-none";
+  container.className = "fixed top-0 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 p-6 pointer-events-none";
   document.body.appendChild(container);
   return container;
 }
