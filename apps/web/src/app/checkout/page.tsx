@@ -112,6 +112,8 @@ export default function CheckoutPage() {
         shipping_zone: shipping,
       });
 
+      localStorage.removeItem("qaidilife:cart_id");
+
       if (payment === "COD") {
         addGuestOrder({
           id: checkout.order_id,

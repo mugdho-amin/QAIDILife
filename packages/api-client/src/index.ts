@@ -1,4 +1,5 @@
-import type { paths } from './schema.d.ts';
+import type { paths, components } from './schema.d.ts';
+export type { components };
 
 /** API client configuration. */
 export interface ApiClientOptions {

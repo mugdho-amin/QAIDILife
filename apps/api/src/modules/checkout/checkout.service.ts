@@ -66,6 +66,10 @@ export class CheckoutService {
         },
       },
     });
+    await this.prisma.cartItem.deleteMany({
+      where: { cartId: input.cartId },
+    });
+
     return {
       cart_id: cart.id,
       order_id: order.id,

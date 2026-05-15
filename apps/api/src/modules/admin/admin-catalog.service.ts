@@ -598,13 +598,21 @@ export class AdminCatalogService {
 
   private normalizeGallery(gallery: unknown) {
     if (Array.isArray(gallery)) {
-      return gallery.map((item) => String(item));
+      return gallery.map((item) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object' && 'url' in item) return (item as { url: string }).url;
+        return String(item);
+      });
     }
     if (typeof gallery === 'string') {
       try {
         const parsed = JSON.parse(gallery) as unknown;
         if (Array.isArray(parsed)) {
-          return parsed.map((item) => String(item));
+          return parsed.map((item: unknown) => {
+            if (typeof item === 'string') return item;
+            if (item && typeof item === 'object' && 'url' in item) return (item as { url: string }).url;
+            return String(item);
+          });
         }
       } catch {
         return [gallery];

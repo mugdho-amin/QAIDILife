@@ -13,31 +13,31 @@ export interface DataTableProps {
 
 export function DataTable({ columns, rows }: DataTableProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-mist bg-panel shadow-sm">
-      <div className="border-b border-mist bg-accent-soft/50 px-6 py-4">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-panel">
+      <div className="border-b border-border bg-muted/50 px-6 py-4">
         <div className="grid grid-cols-12 gap-4">
           {columns.map((column, index) => (
             <div
               key={`${column.label}-${index}`}
               className={`${column.width ?? "col-span-3"} flex items-center gap-2`}
             >
-              <span className="text-xs uppercase tracking-[0.3em] text-text-muted font-medium">
+              <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground font-medium">
                 {column.label}
               </span>
             </div>
           ))}
         </div>
       </div>
-      <div className="divide-y divide-mist/50">
+      <div className="divide-y divide-border/50">
         {rows.length === 0 ? (
-          <div className="px-6 py-12 text-center text-sm text-text-muted">
+          <div className="px-6 py-12 text-center text-sm text-muted-foreground">
             No data available
           </div>
         ) : (
           rows.map((row, i) => (
             <div
               key={i}
-              className="transition-colors hover:bg-accent-soft/30 animate-fade-in"
+              className="transition-colors hover:bg-muted/30 animate-fade-in"
               style={{ animationDelay: `${i * 30}ms` }}
             >
               {row}

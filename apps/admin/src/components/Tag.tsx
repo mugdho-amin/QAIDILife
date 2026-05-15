@@ -6,7 +6,7 @@ interface TagProps {
 }
 
 const variantStyles: Record<string, string> = {
-  default: "bg-accent-soft text-text-secondary border-transparent",
+  default: "bg-muted text-muted-foreground border-transparent",
   success: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800",
   warning: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800",
   danger: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800",

@@ -190,13 +190,21 @@ export const mapProduct = (
 /** Normalize gallery payloads across database providers. */
 const normalizeGallery = (gallery: unknown): string[] => {
   if (Array.isArray(gallery)) {
-    return gallery.map((item) => String(item));
+    return gallery.map((item: unknown) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object" && "url" in item) return (item as { url: string }).url;
+      return String(item);
+    });
   }
   if (typeof gallery === "string") {
     try {
       const parsed = JSON.parse(gallery) as unknown;
       if (Array.isArray(parsed)) {
-        return parsed.map((item) => String(item));
+        return parsed.map((item: unknown) => {
+          if (typeof item === "string") return item;
+          if (item && typeof item === "object" && "url" in item) return (item as { url: string }).url;
+          return String(item);
+        });
       }
     } catch {
       return [gallery];
@@ -205,7 +213,11 @@ const normalizeGallery = (gallery: unknown): string[] => {
   if (gallery && typeof gallery === "object") {
     const maybeArray = (gallery as { values?: unknown }).values;
     if (Array.isArray(maybeArray)) {
-      return maybeArray.map((item) => String(item));
+      return maybeArray.map((item: unknown) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "url" in item) return (item as { url: string }).url;
+        return String(item);
+      });
     }
   }
   return [];

@@ -11,13 +11,13 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="animate-slide-in">
         <div className="flex items-center gap-3">
-          <span className="h-6 w-1 rounded-full bg-ink" />
-          <h1 className="text-2xl font-semibold tracking-tight text-ink font-display">
+          <span className="h-6 w-1 rounded-full bg-foreground" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-display">
             {title}
           </h1>
         </div>
         {subtitle && (
-          <p className="mt-2 text-sm text-text-secondary ml-9 max-w-xl">{subtitle}</p>
+          <p className="mt-2 text-sm text-muted-foreground ml-9 max-w-xl">{subtitle}</p>
         )}
       </div>
       {actions && (

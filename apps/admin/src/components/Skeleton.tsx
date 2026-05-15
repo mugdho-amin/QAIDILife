@@ -41,7 +41,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-mist bg-panel p-6 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-panel">
       <div className="flex items-start justify-between">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-10 w-10 rounded-xl" />

@@ -13,16 +13,14 @@ function ShellContent({ children }: { children: ReactNode }) {
   const { collapsed } = useSidebar();
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <div className="flex min-h-screen">
-        <div className="hidden lg:block">
+    <div className="h-screen bg-background text-foreground overflow-hidden">
+      <div className="flex h-full">
+        <div className="hidden lg:block h-full">
           <Sidebar />
         </div>
-        <div className={cn(
-          "flex-1 flex flex-col min-w-0 transition-all duration-300",
-        )}>
+        <div className="flex-1 flex flex-col min-w-0 h-full">
           <Topbar />
-          <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8 animate-fade-in max-w-full overflow-x-hidden">
+          <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8 animate-fade-in">
             {children}
           </main>
         </div>
